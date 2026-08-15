@@ -13,6 +13,8 @@
 	const visible = $derived(links.filter((l) => l.roles.includes(role)));
 	const currentPath = $derived($page.url.pathname);
 
+	let menuOpen = $state(false);
+
 	function isActive(href: string): boolean {
 		return currentPath === href || currentPath.startsWith(href + '/');
 	}
@@ -60,7 +62,54 @@
 						Keluar
 					</button>
 				</form>
+				<button
+					type="button"
+					onclick={() => (menuOpen = !menuOpen)}
+					aria-label="Menu navigasi"
+					aria-expanded={menuOpen}
+					class="md:hidden inline-flex items-center justify-center rounded-lg border border-white/40 bg-white/10 p-1.5 hover:bg-white/20"
+				>
+					{#if menuOpen}
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					{:else}
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+						</svg>
+					{/if}
+				</button>
 			</div>
 		{/if}
 	</div>
+
+	{#if $page.data.user && menuOpen}
+		<nav class="md:hidden border-t border-white/15 bg-primary-800/80">
+			<div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1">
+				<div class="text-[11px] text-primary-100 px-2 pb-1">
+					Login sebagai <span class="font-semibold">{$page.data.user.nama}</span> ({$page.data.user.role})
+				</div>
+				{#each visible as link}
+					<a
+						href={link.href}
+						onclick={() => (menuOpen = false)}
+						class={isActive(link.href)
+							? 'rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold text-white'
+							: 'rounded-lg px-3 py-2 text-sm text-primary-50 hover:bg-white/10'}
+					>
+						{link.label}
+					</a>
+				{/each}
+				<a
+					href="/profile"
+					onclick={() => (menuOpen = false)}
+					class={isActive('/profile')
+						? 'rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold text-white'
+						: 'rounded-lg px-3 py-2 text-sm text-primary-50 hover:bg-white/10'}
+				>
+					Profil
+				</a>
+			</div>
+		</nav>
+	{/if}
 </header>
