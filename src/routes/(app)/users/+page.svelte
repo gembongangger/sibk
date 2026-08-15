@@ -188,6 +188,9 @@
 							<td class="py-1.5 text-slate-600">{u.email || u.telepon || '-'}</td>
 							<td class="py-1.5 text-right whitespace-nowrap">
 								<a href="/users?edit={u.id}" class="text-xs text-primary-700 hover:underline mr-2">Ubah</a>
+								{#if u.role === 'siswa'}
+									<a href="/siswa/{u.id}" class="text-xs text-primary-700 hover:underline mr-2">Riwayat</a>
+								{/if}
 								{#if u.role !== 'admin'}
 									<form method="POST" action="?/hapus" class="inline">
 										<input type="hidden" name="id" value={u.id} />

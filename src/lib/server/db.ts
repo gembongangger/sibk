@@ -256,6 +256,21 @@ export function listOpenRequests(): RequestRow[] {
 		.all() as RequestRow[];
 }
 
+export function listSessionsForSiswa(siswaId: number): SessionRow[] {
+	return db()
+		.prepare(
+			`SELECT s.*, r.jenis, r.topik, g.nama AS nama_guru,
+			        f.rating AS feedback_rating, f.refleksi AS feedback_refleksi
+			 FROM counseling_sessions s
+			 JOIN counseling_requests r ON r.id = s.request_id
+			 JOIN users g ON g.id = s.guru_id
+			 LEFT JOIN session_feedback f ON f.session_id = s.id
+			 WHERE s.siswa_id = ?
+			 ORDER BY s.tanggal DESC`
+		)
+		.all(siswaId) as SessionRow[];
+}
+
 export function listSessions(): SessionRow[] {
 	return db()
 		.prepare(

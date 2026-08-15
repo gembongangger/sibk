@@ -89,7 +89,12 @@
 								{formatDate(req.created_at)}
 								<div class="text-[10px] text-slate-400">{formatTime(req.created_at)}</div>
 							</td>
-							{#if data.isGuru}<td class="py-1.5 text-slate-700">{req.nama_siswa}</td>{/if}
+							{#if data.isGuru}
+							<td class="py-1.5 text-slate-700">
+								{req.nama_siswa}
+								<a href="/siswa/{req.siswa_id}" class="block text-[10px] text-primary-700 hover:underline">Riwayat →</a>
+							</td>
+						{/if}
 							<td class="py-1.5 text-slate-700">{req.jenis}</td>
 							<td class="py-1.5 text-slate-700">
 								<div class="font-medium">{req.topik}</div>

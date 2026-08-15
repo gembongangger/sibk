@@ -108,7 +108,10 @@
 					{#each data.sessions as s (s.id)}
 						<tr class="border-b border-slate-50">
 							<td class="py-1.5 text-slate-600">{formatDateTime(s.tanggal)}</td>
-							<td class="py-1.5 text-slate-700">{s.nama_siswa}</td>
+							<td class="py-1.5 text-slate-700">
+								{s.nama_siswa}
+								<a href="/siswa/{s.siswa_id}" class="block text-[10px] text-primary-700 hover:underline">Riwayat →</a>
+							</td>
 							<td class="py-1.5 text-slate-700">
 								<div class="font-medium">{s.jenis}</div>
 								<div class="text-[11px] text-slate-500">{s.topik}</div>
