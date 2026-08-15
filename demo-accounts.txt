@@ -1,0 +1,52 @@
+==========================================================
+  AKUN DEMO — SISTEM BK MAN 1 JEMBER (SvelteKit + SQLite)
+==========================================================
+
+  URL aplikasi : http://localhost:5173
+  Database     : data/bk.sqlite (dibuat otomatis saat pertama dijalankan)
+
+  ADMIN (dibuat otomatis oleh sistem):
+    username : admin
+    password : admin123
+    role     : admin
+
+  GURU BK (password sama: guru123):
+    ---------------------------------------
+    username : ahmad_yusuf
+    password : guru123
+    nama     : Ahmad Yusuf, S.Psi.
+    ---------------------------------------
+    username : siti_nurhaliza
+    password : guru123
+    nama     : Siti Nurhaliza, S.Pd.
+    ---------------------------------------
+    username : rahmad_hidayat
+    password : guru123
+    nama     : Rahmad Hidayat, S.Pd.
+    ---------------------------------------
+
+  SISWA (password sama: siswa123):
+    ---------------------------------------
+    username : ani_putri
+    password : siswa123
+    nama     : Ani Putri Lestari  (NIS 211001 - X IPA 1)
+    ---------------------------------------
+    username : bagas_prakoso
+    password : siswa123
+    nama     : Bagas Prakoso  (NIS 211002 - X IPA 1)
+    ---------------------------------------
+    username : citra_dewi
+    password : siswa123
+    nama     : Citra Dewi Anggraini  (NIS 212001 - XI IPA 2)
+    ---------------------------------------
+    username : dimas_aryo
+    password : siswa123
+    nama     : Dimas Aryo Nugroho  (NIS 212002 - XI IPS 1)
+    ---------------------------------------
+    username : erlina_sari
+    password : siswa123
+    nama     : Erlina Sari  (NIS 213001 - XII IPA 3)
+    ---------------------------------------
+
+  Tips: import massal siswa lain juga bisa via menu Pengguna > Import CSV.
+==========================================================

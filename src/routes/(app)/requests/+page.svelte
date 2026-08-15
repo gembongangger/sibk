@@ -1,0 +1,150 @@
+<script lang="ts">
+	import { page } from '$app/stores';
+	import type { PageData } from './$types';
+	import Alert from '$lib/components/Alert.svelte';
+	import StatusBadge from '$lib/components/StatusBadge.svelte';
+	import Stars from '$lib/components/Stars.svelte';
+	import { formatDate, formatDateTime, formatTime, toDateTimeLocal } from '$lib/utils';
+
+	let { data }: { data: PageData } = $props();
+
+	let jenis = $state('');
+	let topik = $state('');
+	let deskripsi = $state('');
+</script>
+
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+	<div>
+		<h1 class="text-lg font-semibold text-slate-900">
+			{data.isGuru ? 'Permohonan Konseling Siswa' : 'Permohonan Konseling Saya'}
+		</h1>
+		<p class="text-xs text-slate-600 mt-1">
+			{data.isGuru ? 'Kelola permohonan konseling yang diajukan siswa.' : 'Ajukan dan pantau permohonan konseling Anda.'}
+		</p>
+	</div>
+</div>
+
+{#if $page.form?.error}
+	<Alert type="error">{$page.form.error}</Alert>
+{/if}
+{#if $page.form?.success}
+	<Alert type="success">{$page.form.success}</Alert>
+{/if}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+	{#if data.user.role === 'siswa'}
+		<div class="rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
+			<h2 class="text-sm font-semibold text-slate-900 mb-3">Ajukan Permohonan Konseling</h2>
+			<form method="POST" action="?/ajukan" class="space-y-2 text-xs">
+				<div>
+					<label for="jenis" class="block mb-1 text-slate-600">Jenis Layanan</label>
+					<select id="jenis" name="jenis" bind:value={jenis} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+						<option value="">Pilih jenis layanan</option>
+						<option value="Pribadi">Pribadi</option>
+						<option value="Sosial">Sosial</option>
+						<option value="Belajar">Belajar</option>
+						<option value="Karier">Karier</option>
+					</select>
+				</div>
+				<div>
+					<label for="topik" class="block mb-1 text-slate-600">Topik Utama</label>
+					<input id="topik" type="text" name="topik" bind:value={topik} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" />
+				</div>
+				<div>
+					<label for="deskripsi" class="block mb-1 text-slate-600">Deskripsi Singkat</label>
+					<textarea id="deskripsi" name="deskripsi" rows="4" bind:value={deskripsi} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"></textarea>
+				</div>
+				<button type="submit" class="mt-2 w-full inline-flex items-center justify-center rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">
+					Kirim Permohonan
+				</button>
+			</form>
+		</div>
+	{/if}
+
+	<div class="{data.user.role === 'siswa' ? 'lg:col-span-2' : 'lg:col-span-3'} rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
+		<h2 class="text-sm font-semibold text-slate-900 mb-3">Daftar Permohonan</h2>
+		<div class="overflow-x-auto">
+			<table class="min-w-full text-xs">
+				<thead>
+					<tr class="border-b border-slate-100 text-slate-500">
+						<th class="py-2 text-left">Tanggal</th>
+						{#if data.isGuru}<th class="py-2 text-left">Siswa</th>{/if}
+						<th class="py-2 text-left">Jenis</th>
+						<th class="py-2 text-left">Topik</th>
+						<th class="py-2 text-left">Guru BK</th>
+						<th class="py-2 text-left">Status</th>
+						<th class="py-2 text-left">Jadwal</th>
+						{#if data.isGuru}<th class="py-2 text-right">Aksi</th>{:else}<th class="py-2 text-right">Umpan Balik</th>{/if}
+					</tr>
+				</thead>
+				<tbody>
+					{#if data.requests.length === 0}
+						<tr>
+							<td colspan={data.isGuru ? 8 : 7} class="py-3 text-center text-slate-500">Belum ada permohonan.</td>
+						</tr>
+					{/if}
+					{#each data.requests as req (req.id)}
+						<tr class="border-b border-slate-50 align-top">
+							<td class="py-1.5 text-slate-600">
+								{formatDate(req.created_at)}
+								<div class="text-[10px] text-slate-400">{formatTime(req.created_at)}</div>
+							</td>
+							{#if data.isGuru}<td class="py-1.5 text-slate-700">{req.nama_siswa}</td>{/if}
+							<td class="py-1.5 text-slate-700">{req.jenis}</td>
+							<td class="py-1.5 text-slate-700">
+								<div class="font-medium">{req.topik}</div>
+								<div class="text-[10px] text-slate-500 line-clamp-2">{req.deskripsi}</div>
+							</td>
+							<td class="py-1.5 text-slate-700">{req.nama_guru ?? '-'}</td>
+							<td class="py-1.5"><StatusBadge status={req.status} /></td>
+							<td class="py-1.5 text-slate-700">{req.jadwal ? formatDateTime(req.jadwal) : '-'}</td>
+							{#if data.isGuru}
+								<td class="py-1.5 text-right">
+									<details class="text-[11px] text-slate-600">
+										<summary class="cursor-pointer text-primary-700">Kelola</summary>
+										<form method="POST" action="?/kelola" class="mt-2 space-y-1">
+											<input type="hidden" name="id" value={req.id} />
+											<div>
+												<label for="status-{req.id}" class="block mb-0.5">Status</label>
+												<select id="status-{req.id}" name="status" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-[11px]">
+													<option value="menunggu" selected={req.status === 'menunggu'}>Menunggu</option>
+													<option value="dijadwalkan" selected={req.status === 'dijadwalkan'}>Dijadwalkan</option>
+													<option value="selesai" selected={req.status === 'selesai'}>Selesai</option>
+													<option value="ditolak" selected={req.status === 'ditolak'}>Ditolak</option>
+												</select>
+											</div>
+											<div>
+												<label for="jadwal-{req.id}" class="block mb-0.5">Jadwal</label>
+												<input id="jadwal-{req.id}" type="datetime-local" name="jadwal" value={toDateTimeLocal(req.jadwal)} class="w-full rounded-lg border border-slate-200 px-2 py-1 text-[11px]" />
+											</div>
+											<button type="submit" class="mt-1 w-full rounded-lg bg-primary-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-primary-700">
+												Simpan
+											</button>
+										</form>
+								</details>
+							</td>
+						{:else}
+							<td class="py-1.5 text-right whitespace-nowrap">
+								{#if req.status === 'selesai' && req.session_id}
+									{#if req.feedback_rating}
+										<div class="inline-flex flex-col items-end gap-0.5">
+											<Stars rating={req.feedback_rating} size="text-sm" />
+											<span class="text-[10px] text-slate-400">Sudah memberi umpan balik</span>
+										</div>
+									{:else}
+										<a href="/feedback/{req.session_id}" class="text-[11px] text-primary-700 hover:underline">
+											Beri Umpan Balik →
+										</a>
+									{/if}
+								{:else}
+									<span class="text-[10px] text-slate-300">—</span>
+								{/if}
+							</td>
+						{/if}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

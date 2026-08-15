@@ -1,0 +1,272 @@
+import ExcelJS from 'exceljs';
+import { fail, redirect } from '@sveltejs/kit';
+import { db, getUserById, listUsers } from '$lib/server/db';
+import { hashPassword } from '$lib/server/auth';
+import type { Actions, PageServerLoad } from './$types';
+
+const ROLES = ['admin', 'guru', 'siswa'];
+
+export const load: PageServerLoad = async ({ locals, url }) => {
+	const user = locals.user!;
+	if (user.role !== 'admin') {
+		redirect(302, '/');
+	}
+	const editId = Number(url.searchParams.get('edit') ?? 0);
+	const q = url.searchParams.get('q') ?? '';
+	const rawPage = Number(url.searchParams.get('page') ?? 1);
+	const list = listUsers({ search: q, page: Number.isFinite(rawPage) ? rawPage : 1, pageSize: 10 });
+	return {
+		users: list.users,
+		total: list.total,
+		page: list.page,
+		totalPages: list.totalPages,
+		q,
+		editUser: editId > 0 ? getUserById(editId) : null
+	};
+};
+
+export const actions: Actions = {
+	simpan: async ({ request }) => {
+		const form = await request.formData();
+		const id = Number(form.get('id') ?? 0);
+		const nama = String(form.get('nama') ?? '').trim();
+		const username = String(form.get('username') ?? '').trim();
+		const role = String(form.get('role') ?? 'siswa');
+		const password = String(form.get('password') ?? '');
+		const nis = String(form.get('nis') ?? '').trim();
+		const kelas = String(form.get('kelas') ?? '').trim();
+		const email = String(form.get('email') ?? '').trim();
+		const telepon = String(form.get('telepon') ?? '').trim();
+
+		if (!nama || !username || !ROLES.includes(role)) {
+			return fail(400, { error: 'Nama, username, dan peran wajib diisi.' });
+		}
+
+		try {
+			if (id > 0) {
+				if (password) {
+					db()
+						.prepare(
+							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, email = ?, telepon = ?, password = ?
+							 WHERE id = ?`
+						)
+						.run(nama, username, role, nis || null, kelas || null, email || null, telepon || null, hashPassword(password), id);
+				} else {
+					db()
+						.prepare(
+							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, email = ?, telepon = ?
+							 WHERE id = ?`
+						)
+						.run(nama, username, role, nis || null, kelas || null, email || null, telepon || null, id);
+				}
+				return { success: 'Data pengguna berhasil diperbarui.' };
+			}
+
+			if (!password) {
+				return fail(400, { error: 'Password wajib diisi untuk pengguna baru.' });
+			}
+			db()
+				.prepare(
+					`INSERT INTO users (nama, username, role, nis, kelas, email, telepon, password)
+					 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+				)
+				.run(nama, username, role, nis || null, kelas || null, email || null, telepon || null, hashPassword(password));
+			return { success: 'Pengguna baru berhasil ditambahkan.' };
+		} catch {
+			return fail(500, { error: 'Terjadi kesalahan saat menyimpan data pengguna.' });
+		}
+	},
+
+	hapus: async ({ request }) => {
+		const form = await request.formData();
+		const id = Number(form.get('id') ?? 0);
+		if (!id) {
+			return fail(400, { error: 'Data tidak valid.' });
+		}
+		db()
+			.prepare(`DELETE FROM users WHERE id = ? AND role != 'admin'`)
+			.run(id);
+		return { success: 'Pengguna berhasil dihapus.' };
+	},
+
+	import: async ({ request }) => {
+		const form = await request.formData();
+		const file = form.get('file') ?? form.get('csv');
+		console.log(
+			'[import] content-type:', request.headers.get('content-type'),
+			'| field:', [...form.keys()].join(', '),
+			'| file:', file instanceof File ? `${file.name} (${file.size} bytes)` : `STRING -> ${String(file)}`
+		);
+
+		if (!(file instanceof File) || file.size === 0) {
+			console.error('[import] GAGAL: file tidak ada atau kosong (mungkin terkirim sebagai string, bukan multipart).');
+			return fail(400, {
+				error: 'File tidak terkirim dengan benar. Pilih ulang file di kolom upload, lalu klik Import. Jika masih gagal, muat ulang halaman (Ctrl+Shift+R) dan coba lagi.'
+			});
+		}
+
+		const name = file.name.toLowerCase();
+		let rows: string[][];
+		try {
+			if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+				rows = await parseXlsx(await file.arrayBuffer());
+			} else if (name.endsWith('.csv')) {
+				rows = parseCsv(new TextDecoder().decode(await file.arrayBuffer()));
+			} else {
+				console.error('[import] GAGAL: ekstensi tidak dikenali:', name);
+				return fail(400, { error: 'Format file harus berupa .csv atau .xlsx.' });
+			}
+		} catch (e) {
+			console.error('[import] GAGAL parse file:', (e as Error).message);
+			return fail(400, {
+				error:
+					'File Excel tidak dapat dibaca. Pastikan berformat .xlsx (simpan ulang di Excel: File > Save As > Excel Workbook (.xlsx)), atau unduh ulang template lalu isi datanya.'
+			});
+		}
+
+		const headerIdx = rows.findIndex((r) => r.some((c) => c.toLowerCase().trim() === 'nama'));
+		if (headerIdx === -1) {
+			return fail(400, {
+				error: 'Kolom "Nama" tidak ditemukan di baris pertama. Gunakan template yang diunduh, atau pastikan judul kolom berada di baris pertama (Nama; Username; Role).'
+			});
+		}
+
+		const header = rows[headerIdx].map((h) => h.toLowerCase().trim());
+		const map: Record<string, number> = {};
+		header.forEach((name, index) => (map[name] = index));
+		rows = rows.slice(headerIdx + 1);
+
+		if (rows.length === 0) {
+			console.error('[import] GAGAL: tidak ada baris data (baris header ditemukan, data kosong).');
+			return fail(400, {
+				error: 'File tidak berisi baris data. Isi minimal satu baris data di bawah judul kolom.'
+			});
+		}
+
+		const missing = ['nama', 'username', 'role'].filter((c) => !(c in map));
+		if (missing.length) {
+			console.error('[import] GAGAL: kolom wajib hilang:', missing.join(', '));
+			return fail(400, { error: 'Kolom wajib berikut belum ada di file: ' + missing.join(', ') + '.' });
+		}
+
+		const stmtCheck = db().prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
+		const stmtInsert = db().prepare(
+			`INSERT INTO users (nama, username, role, nis, kelas, email, telepon, password)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+		);
+
+		let inserted = 0;
+		let skipped = 0;
+		const tx = db().transaction(() => {
+			for (let i = 0; i < rows.length; i++) {
+				const row = rows[i];
+				const get = (key: string) => {
+					const idx = map[key];
+					return idx === undefined ? '' : String(row[idx] ?? '').trim();
+				};
+
+				const nama = get('nama');
+				const username = get('username');
+				if (!nama || !username) {
+					skipped++;
+					continue;
+				}
+				let role = get('role').toLowerCase();
+				if (!ROLES.includes(role)) role = 'siswa';
+				if (stmtCheck.get(username)) {
+					skipped++;
+					continue;
+				}
+				const password = get('password') || '123456';
+				try {
+					stmtInsert.run(
+						nama,
+						username,
+						role,
+						get('nis') || null,
+						get('kelas') || null,
+						get('email') || null,
+						get('telepon') || null,
+						hashPassword(password)
+					);
+					inserted++;
+				} catch {
+					skipped++;
+				}
+			}
+		});
+		tx();
+
+		if (inserted > 0) {
+			return { success: `Import selesai. Berhasil: ${inserted} baris, dilewati: ${skipped} baris.` };
+		}
+		console.error('[import] GAGAL: 0 baris berhasil (semua dilewati). inserted=', inserted, 'skipped=', skipped);
+		return fail(400, {
+			error:
+				'Semua baris dilewati — tidak ada data baru yang ditambahkan (username sudah terdaftar, atau baris berisi nama/username kosong).'
+		});
+	}
+};
+
+async function parseXlsx(buffer: ArrayBuffer): Promise<string[][]> {
+	const wb = new ExcelJS.Workbook();
+	await wb.xlsx.load(buffer);
+	const sheet = wb.worksheets[0];
+	if (!sheet) return [];
+	const rows: string[][] = [];
+	sheet.eachRow((row) => {
+		const values = row.values as unknown[];
+		const cells = values
+			.slice(1)
+			.map((v) =>
+				v instanceof Date
+					? v.toISOString().slice(0, 10)
+					: v == null
+						? ''
+						: String(v).trim()
+			);
+		rows.push(cells);
+	});
+	return rows.filter((r) => r.some((f) => f !== ''));
+}
+
+function parseCsv(text: string): string[][] {
+	const rows: string[][] = [];
+	let row: string[] = [];
+	let field = '';
+	let inQuotes = false;
+	const clean = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+	for (let i = 0; i < clean.length; i++) {
+		const c = clean[i];
+		if (inQuotes) {
+			if (c === '"') {
+				if (clean[i + 1] === '"') {
+					field += '"';
+					i++;
+				} else {
+					inQuotes = false;
+				}
+			} else {
+				field += c;
+			}
+		} else if (c === '"') {
+			inQuotes = true;
+		} else if (c === ';') {
+			row.push(field.trim());
+			field = '';
+		} else if (c === '\n') {
+			row.push(field.trim());
+			field = '';
+			rows.push(row);
+			row = [];
+		} else {
+			field += c;
+		}
+	}
+	if (field !== '' || row.length > 0) {
+		row.push(field.trim());
+		rows.push(row);
+	}
+	return rows.filter((r) => r.some((f) => f !== ''));
+}
