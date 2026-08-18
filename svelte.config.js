@@ -5,7 +5,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		csrf: {
-			origin: process.env.ORIGIN || 'http://192.168.10.3'
+			origin: process.env.ORIGIN || 'http://192.168.10.3:3000'
 		}
 	}
 };
