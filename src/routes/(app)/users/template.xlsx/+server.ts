@@ -10,7 +10,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 	const wb = new ExcelJS.Workbook();
 
 	const ws = wb.addWorksheet('Siswa');
-	const cols = ['Nama', 'Username', 'Role', 'NIS', 'Kelas', 'Email', 'Telepon', 'Password'];
+	const cols = ['Nama', 'Username', 'Role', 'NIS', 'Kelas', 'Angkatan', 'Email', 'Telepon', 'Password'];
 	ws.columns = cols.map((h) => ({
 		header: h,
 		key: h,
@@ -28,6 +28,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 		'siswa',
 		'211100',
 		'X IPA 1',
+		2024,
 		'contoh@madrasah.sch.id',
 		'081234567890',
 		'123456'
@@ -41,9 +42,10 @@ export const GET: RequestHandler = async ({ locals }) => {
 		'1. Isi data pada sheet "Siswa" mulai baris ke-2 (baris ke-1 adalah judul kolom).',
 		'2. Kolom wajib: Nama, Username, Role. Kolom lainnya opsional.',
 		'3. Nilai Role: siswa, guru, atau admin. Jika dikosongkan akan dianggap siswa.',
-		'4. Jika Password dikosongkan, password otomatis menjadi 123456.',
-		'5. Baris contoh di baris ke-2 boleh dihapus sebelum mengupload.',
-		'6. Username yang sudah terdaftar akan dilewati (tidak diduplikasi).',
+		'4. Kolom Angkatan berisi tahun masuk siswa (contoh: 2024). Khusus untuk role siswa.',
+		'5. Jika Password dikosongkan, password otomatis menjadi 123456.',
+		'6. Baris contoh di baris ke-2 boleh dihapus sebelum mengupload.',
+		'7. Username yang sudah terdaftar akan dilewati (tidak diduplikasi).',
 		'',
 		'Simpan file dalam format .xlsx lalu upload lewat menu Pengguna > Import Data Massal.'
 	];

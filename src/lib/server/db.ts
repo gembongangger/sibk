@@ -14,6 +14,7 @@ export interface User {
 	role: Role;
 	nis: string | null;
 	kelas: string | null;
+	angkatan: number | null;
 	email: string | null;
 	telepon: string | null;
 	created_at: string;
@@ -47,6 +48,8 @@ export interface SessionRow {
 	topik?: string;
 	nama_siswa?: string;
 	nama_guru?: string;
+	nis?: string | null;
+	kelas?: string | null;
 	feedback_rating?: number | null;
 	feedback_refleksi?: string | null;
 }
@@ -137,6 +140,20 @@ function migrate(d: Database.Database): void {
 		CREATE INDEX IF NOT EXISTS idx_sessions_tanggal ON counseling_sessions(tanggal);
 		CREATE INDEX IF NOT EXISTS idx_feedback_siswa ON session_feedback(siswa_id);
 	`);
+
+	// Kolom angkatan untuk database lama yang belum memilikinya
+	const userCols = d.pragma('table_info(users)') as { name: string }[];
+	if (!userCols.some((c) => c.name === 'angkatan')) {
+		d.exec('ALTER TABLE users ADD COLUMN angkatan INTEGER');
+	}
+
+	d.exec(`
+		CREATE TABLE IF NOT EXISTS app_settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL
+		);
+	`);
+
 	ensure_default_admin(d);
 }
 
@@ -286,20 +303,58 @@ export function listSessions(): SessionRow[] {
 		.all() as SessionRow[];
 }
 
-export function listSessionsByPeriod(awal: string, akhir: string): SessionRow[] {
+export interface ReportFilter {
+	kelas?: string;
+	nama?: string;
+	nis?: string;
+}
+
+function reportWhere(awal: string, akhir: string, filter: ReportFilter) {
+	const clauses = ['date(s.tanggal) BETWEEN ? AND ?'];
+	const params: string[] = [awal, akhir];
+	if (filter.kelas) {
+		clauses.push('u.kelas = ?');
+		params.push(filter.kelas);
+	}
+	if (filter.nama) {
+		clauses.push('u.nama LIKE ?');
+		params.push(`%${filter.nama}%`);
+	}
+	if (filter.nis) {
+		clauses.push("COALESCE(u.nis, '') LIKE ?");
+		params.push(`%${filter.nis}%`);
+	}
+	return { where: clauses.join('\n\t\t\t AND '), params };
+}
+
+export function listKelasOptions(): string[] {
+	return (
+		db()
+			.prepare(
+				`SELECT DISTINCT kelas FROM users
+				 WHERE role = 'siswa' AND kelas IS NOT NULL AND kelas != ''
+				 ORDER BY kelas`
+			)
+			.all()
+			.map((row) => (row as { kelas: string }).kelas)
+	);
+}
+
+export function listSessionsByPeriod(awal: string, akhir: string, filter: ReportFilter = {}): SessionRow[] {
+	const { where, params } = reportWhere(awal, akhir, filter);
 	return db()
 		.prepare(
-			`SELECT s.*, r.jenis, r.topik, u.nama AS nama_siswa, g.nama AS nama_guru,
+			`SELECT s.*, r.jenis, r.topik, u.nama AS nama_siswa, u.nis, u.kelas, g.nama AS nama_guru,
 			        f.rating AS feedback_rating, f.refleksi AS feedback_refleksi
 			 FROM counseling_sessions s
 			 JOIN counseling_requests r ON r.id = s.request_id
 			 JOIN users u ON u.id = s.siswa_id
 			 JOIN users g ON g.id = s.guru_id
 			 LEFT JOIN session_feedback f ON f.session_id = s.id
-			 WHERE date(s.tanggal) BETWEEN ? AND ?
+			 WHERE ${where}
 			 ORDER BY s.tanggal ASC`
 		)
-		.all(awal, akhir) as SessionRow[];
+		.all(...params) as SessionRow[];
 }
 
 export function getSessionForFeedback(sessionId: number): (SessionRow & { status: RequestStatus }) | null {
@@ -353,18 +408,20 @@ export function pendingFeedbackForSiswa(siswaId: number): SessionRow[] {
 		.all(siswaId) as SessionRow[];
 }
 
-export function getFeedbackStats(awal: string, akhir: string): {
+export function getFeedbackStats(awal: string, akhir: string, filter: ReportFilter = {}): {
 	total: number;
 	average: number | null;
 } {
+	const { where, params } = reportWhere(awal, akhir, filter);
 	const row = db()
 		.prepare(
 			`SELECT COUNT(*) AS total, AVG(f.rating) AS average
 			 FROM session_feedback f
 			 JOIN counseling_sessions s ON s.id = f.session_id
-			 WHERE date(s.tanggal) BETWEEN ? AND ?`
+			 JOIN users u ON u.id = s.siswa_id
+			 WHERE ${where}`
 		)
-		.get(awal, akhir) as { total: number; average: number | null };
+		.get(...params) as { total: number; average: number | null };
 	return { total: row.total, average: row.average };
 }
 
@@ -376,23 +433,112 @@ export interface UserList {
 	totalPages: number;
 }
 
-export function listUsers(opts: { search?: string; page?: number; pageSize?: number } = {}): UserList {
+export function getSetting(key: string): string | null {
+	const row = db().prepare('SELECT value FROM app_settings WHERE key = ? LIMIT 1').get(key) as
+		| { value: string }
+		| undefined;
+	return row?.value ?? null;
+}
+
+export function setSetting(key: string, value: string): void {
+	db()
+		.prepare(
+			`INSERT INTO app_settings (key, value) VALUES (?, ?)
+			 ON CONFLICT(key) DO UPDATE SET value = excluded.value`
+		)
+		.run(key, value);
+}
+
+const ANGKATAN_KEY = 'angkatan_aktif';
+
+/** Daftar tahun angkatan yang ditandai aktif oleh admin.
+ *  configured = false berarti belum pernah diatur -> semua siswa dianggap aktif. */
+export function getAngkatanAktif(): { configured: boolean; years: number[] } {
+	const raw = getSetting(ANGKATAN_KEY);
+	if (raw === null) return { configured: false, years: [] };
+	const years = raw
+		.split(',')
+		.map((s) => Number(s.trim()))
+		.filter((n) => Number.isInteger(n) && n >= 1990 && n <= 2100);
+	return { configured: true, years };
+}
+
+export function setAngkatanAktif(years: number[]): void {
+	setSetting(
+		ANGKATAN_KEY,
+		[...new Set(years)]
+			.filter((n) => Number.isInteger(n) && n >= 1990 && n <= 2100)
+			.sort((a, b) => a - b)
+			.join(',')
+	);
+}
+
+export function listAngkatanOptions(): number[] {
+	return (
+		db()
+			.prepare(
+				`SELECT DISTINCT angkatan FROM users
+				 WHERE role = 'siswa' AND angkatan IS NOT NULL
+				 ORDER BY angkatan DESC`
+			)
+			.all()
+			.map((row) => (row as { angkatan: number }).angkatan)
+	);
+}
+
+export function parseAngkatan(raw: string): number | null {
+	if (!raw) return null;
+	const n = Number(raw);
+	return Number.isInteger(n) && n >= 1990 && n <= 2100 ? n : null;
+}
+
+export function listUsers(
+	opts: {
+		search?: string;
+		page?: number;
+		pageSize?: number;
+		angkatan?: number;
+		status?: 'aktif' | 'nonaktif';
+		activeAngkatan?: number[];
+	} = {}
+): UserList {
 	const search = (opts.search ?? '').trim();
 	const pageSize = Math.max(1, opts.pageSize ?? 10);
 	const d = db();
-	const where = search
-		? `WHERE nama LIKE @like OR username LIKE @like OR COALESCE(nis, '') LIKE @like
-		   OR COALESCE(kelas, '') LIKE @like OR COALESCE(email, '') LIKE @like OR COALESCE(telepon, '') LIKE @like`
-		: '';
-	const like = `%${search}%`;
+	const clauses: string[] = [];
+	const params: Record<string, unknown> = {};
+	if (search) {
+		clauses.push(`(nama LIKE @like OR username LIKE @like OR COALESCE(nis, '') LIKE @like
+		   OR COALESCE(kelas, '') LIKE @like OR COALESCE(email, '') LIKE @like OR COALESCE(telepon, '') LIKE @like)`);
+		params.like = `%${search}%`;
+	}
+	if (opts.angkatan !== undefined && opts.angkatan !== null) {
+		clauses.push('angkatan = @f_angkatan');
+		params.f_angkatan = opts.angkatan;
+	}
+	if (opts.status === 'aktif' || opts.status === 'nonaktif') {
+		const active = opts.activeAngkatan ?? [];
+		if (active.length > 0) {
+			const ph = active.map((_, i) => `@akt${i}`).join(', ');
+			active.forEach((y, i) => (params[`akt${i}`] = y));
+			clauses.push(
+				opts.status === 'aktif'
+					? `(role != 'siswa' OR angkatan IN (${ph}))`
+					: `(role = 'siswa' AND (angkatan IS NULL OR angkatan NOT IN (${ph})))`
+			);
+		} else {
+			clauses.push(opts.status === 'aktif' ? `role != 'siswa'` : `role = 'siswa'`);
+		}
+	}
+	const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
 	const total = (
-		d.prepare(`SELECT COUNT(*) AS n FROM users ${where}`).get({ like }) as { n: number }
+		d.prepare(`SELECT COUNT(*) AS n FROM users ${where}`).get(params) as { n: number }
 	).n;
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 	const page = Math.min(Math.max(1, opts.page ?? 1), totalPages);
 	const users = d
 		.prepare(`SELECT * FROM users ${where} ORDER BY role, nama LIMIT @limit OFFSET @offset`)
-		.all({ like, limit: pageSize, offset: (page - 1) * pageSize }) as User[];
+		.all({ ...params, limit: pageSize, offset: (page - 1) * pageSize }) as User[];
 	return { users, total, page, pageSize, totalPages };
 }
 

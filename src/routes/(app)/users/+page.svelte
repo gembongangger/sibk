@@ -24,9 +24,15 @@
 			role: u?.role ?? 'siswa',
 			nis: u?.nis ?? '',
 			kelas: u?.kelas ?? '',
+			angkatan: u?.angkatan != null ? String(u.angkatan) : '',
 			email: u?.email ?? '',
 			telepon: u?.telepon ?? ''
 		};
+	}
+
+	function isAktif(u: PageData['users'][number]): boolean {
+		if (!data.angkatanDikonfigurasi) return true;
+		return u.angkatan !== null && data.angkatanAktif.includes(u.angkatan);
 	}
 
 	// svelte-ignore state_referenced_locally -- initial value only; $effect below resyncs on data change
@@ -49,6 +55,8 @@
 	function goPage(p: number) {
 		const qp = new URLSearchParams();
 		if (search.trim()) qp.set('q', search.trim());
+		if (data.angkatan) qp.set('angkatan', String(data.angkatan));
+		if (data.status) qp.set('status', data.status);
 		if (p > 1) qp.set('page', String(p));
 		const qs = qp.toString();
 		goto('/users' + (qs ? '?' + qs : ''), { keepFocus: true, replaceState: true });
@@ -99,18 +107,29 @@
 	<div class="lg:col-span-2 rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
 		<div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
 			<h2 class="text-sm font-semibold text-slate-900">Daftar Pengguna</h2>
-			<form method="GET" action="/users" class="flex items-center gap-2">
+			<form method="GET" action="/users" class="flex flex-wrap items-center gap-2">
 				<input
 					type="search"
 					name="q"
 					value={data.q}
 					placeholder="Cari nama, username, NIS, kelas…"
-					class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs w-full md:w-64"
+					class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs w-full md:w-56"
 				/>
+				<select name="angkatan" class="rounded-lg border border-slate-200 px-2 py-1.5 text-xs bg-white">
+					<option value="">Semua angkatan</option>
+					{#each data.angkatanOptions as a (a)}
+						<option value={a} selected={a === data.angkatan}>{a}</option>
+					{/each}
+				</select>
+				<select name="status" class="rounded-lg border border-slate-200 px-2 py-1.5 text-xs bg-white">
+					<option value="">Semua status</option>
+					<option value="aktif" selected={data.status === 'aktif'}>Aktif</option>
+					<option value="nonaktif" selected={data.status === 'nonaktif'}>Non-aktif</option>
+				</select>
 				<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700">
 					Cari
 				</button>
-				{#if data.q}
+				{#if data.q || data.angkatan || data.status}
 					<a href="/users" class="text-sm text-primary-700 hover:underline">Reset</a>
 				{/if}
 			</form>
@@ -150,9 +169,41 @@
 					</div>
 					<div class="text-sm text-slate-600">
 						Format header CSV:
-						<span class="font-mono bg-white border border-slate-200 rounded px-1">nama;username;role;nis;kelas;email;telepon;password</span>
+						<span class="font-mono bg-white border border-slate-200 rounded px-1">nama;username;role;nis;kelas;angkatan;email;telepon;password</span>
 						Kolom wajib: nama, username, role. Jika password kosong, diisi 123456. Username yang sudah terdaftar dilewati.
 					</div>
+				</div>
+			</details>
+			<details class="text-xs text-slate-600 mt-2">
+				<summary class="cursor-pointer text-primary-700">Tahun Angkatan Aktif</summary>
+				<div class="mt-2 p-3 border border-slate-100 rounded-xl bg-slate-50 space-y-2">
+					<p>
+						Siswa dengan angkatan yang tidak dicentang ditandai
+						<span class="font-medium">Non-aktif</span> — hanya label dan filter, semua fitur tetap berjalan.
+						{#if !data.angkatanDikonfigurasi}
+							Belum pernah diatur: saat ini semua siswa dianggap <span class="font-medium">Aktif</span>.
+						{/if}
+					</p>
+					<form method="POST" action="?/angkatan" class="space-y-2">
+						{#if data.angkatanOptions.length === 0}
+							<p class="text-sm text-slate-500">Belum ada data angkatan pada siswa. Isi kolom Angkatan saat menambah/mengubah siswa, atau lewat import massal.</p>
+						{:else}
+							<div class="flex flex-wrap gap-x-4 gap-y-1">
+								{#each data.angkatanOptions as a (a)}
+									<label class="inline-flex items-center gap-1.5">
+										<input type="checkbox" name="tahun" value={a} checked={data.angkatanAktif.includes(a)} />
+										<span>{a}</span>
+									</label>
+								{/each}
+							</div>
+						{/if}
+						<div class="flex flex-wrap items-center gap-2">
+							<input type="number" name="tahun_baru" min="1990" max="2100" placeholder="Tambah tahun lain…" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs w-44" />
+							<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-sm font-semibold text-white hover:bg-primary-700">
+								Simpan Pengaturan
+							</button>
+						</div>
+					</form>
 				</div>
 			</details>
 		<div class="overflow-x-auto">
@@ -163,6 +214,8 @@
 						<th class="py-2 text-left">Username</th>
 						<th class="py-2 text-left">Peran</th>
 						<th class="py-2 text-left">Kelas/NIP</th>
+						<th class="py-2 text-left">Angkatan</th>
+						<th class="py-2 text-left">Status</th>
 						<th class="py-2 text-left">Kontak</th>
 						<th class="py-2 text-right">Aksi</th>
 					</tr>
@@ -170,7 +223,7 @@
 				<tbody>
 					{#if data.users.length === 0}
 						<tr>
-							<td colspan="6" class="py-6 text-center text-slate-500">
+							<td colspan="8" class="py-6 text-center text-slate-500">
 								Tidak ada pengguna ditemukan.
 							</td>
 						</tr>
@@ -185,6 +238,16 @@
 								</span>
 							</td>
 							<td class="py-1.5 text-slate-600">{u.kelas || u.nis || '-'}</td>
+							<td class="py-1.5 text-slate-600">{u.role === 'siswa' ? (u.angkatan ?? '-') : '—'}</td>
+							<td class="py-1.5">
+								{#if u.role === 'siswa'}
+									<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-medium {isAktif(u) ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+										{isAktif(u) ? 'Aktif' : 'Non-aktif'}
+									</span>
+								{:else}
+									<span class="text-sm text-slate-400">—</span>
+								{/if}
+							</td>
 							<td class="py-1.5 text-slate-600">{u.email || u.telepon || '-'}</td>
 							<td class="py-1.5 text-right whitespace-nowrap">
 								<a href="/users?edit={u.id}" class="text-xs text-primary-700 hover:underline mr-2">Ubah</a>
@@ -270,6 +333,10 @@
 			<div>
 				<label for="kelas" class="block mb-1 text-slate-600">Kelas</label>
 				<input id="kelas" type="text" name="kelas" bind:value={form.kelas} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" placeholder="contoh: X IPA 1" />
+			</div>
+			<div>
+				<label for="angkatan" class="block mb-1 text-slate-600">Tahun Angkatan</label>
+				<input id="angkatan" type="number" name="angkatan" bind:value={form.angkatan} min="1990" max="2100" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" placeholder="contoh: 2024" />
 			</div>
 			<div>
 				<label for="email" class="block mb-1 text-slate-600">Email</label>

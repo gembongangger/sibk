@@ -1,6 +1,14 @@
 import ExcelJS from 'exceljs';
 import { fail, redirect } from '@sveltejs/kit';
-import { db, getUserById, listUsers } from '$lib/server/db';
+import {
+	db,
+	getAngkatanAktif,
+	getUserById,
+	listAngkatanOptions,
+	listUsers,
+	parseAngkatan,
+	setAngkatanAktif
+} from '$lib/server/db';
 import { hashPassword } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -14,13 +22,30 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const editId = Number(url.searchParams.get('edit') ?? 0);
 	const q = url.searchParams.get('q') ?? '';
 	const rawPage = Number(url.searchParams.get('page') ?? 1);
-	const list = listUsers({ search: q, page: Number.isFinite(rawPage) ? rawPage : 1, pageSize: 10 });
+	const angkatan = parseAngkatan(url.searchParams.get('angkatan') ?? '');
+	const statusRaw = url.searchParams.get('status') ?? '';
+	const status = statusRaw === 'aktif' || statusRaw === 'nonaktif' ? statusRaw : '';
+
+	const aktif = getAngkatanAktif();
+	const list = listUsers({
+		search: q,
+		page: Number.isFinite(rawPage) ? rawPage : 1,
+		pageSize: 10,
+		angkatan: angkatan ?? undefined,
+		status: (status || undefined) as 'aktif' | 'nonaktif' | undefined,
+		activeAngkatan: aktif.years
+	});
 	return {
 		users: list.users,
 		total: list.total,
 		page: list.page,
 		totalPages: list.totalPages,
 		q,
+		angkatan,
+		status,
+		angkatanOptions: listAngkatanOptions(),
+		angkatanAktif: aktif.years,
+		angkatanDikonfigurasi: aktif.configured,
 		editUser: editId > 0 ? getUserById(editId) : null
 	};
 };
@@ -35,6 +60,7 @@ export const actions: Actions = {
 		const password = String(form.get('password') ?? '');
 		const nis = String(form.get('nis') ?? '').trim();
 		const kelas = String(form.get('kelas') ?? '').trim();
+		const angkatan = parseAngkatan(String(form.get('angkatan') ?? '').trim());
 		const email = String(form.get('email') ?? '').trim();
 		const telepon = String(form.get('telepon') ?? '').trim();
 
@@ -47,17 +73,17 @@ export const actions: Actions = {
 				if (password) {
 					db()
 						.prepare(
-							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, email = ?, telepon = ?, password = ?
+							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, angkatan = ?, email = ?, telepon = ?, password = ?
 							 WHERE id = ?`
 						)
-						.run(nama, username, role, nis || null, kelas || null, email || null, telepon || null, hashPassword(password), id);
+						.run(nama, username, role, nis || null, kelas || null, angkatan, email || null, telepon || null, hashPassword(password), id);
 				} else {
 					db()
 						.prepare(
-							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, email = ?, telepon = ?
+							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, angkatan = ?, email = ?, telepon = ?
 							 WHERE id = ?`
 						)
-						.run(nama, username, role, nis || null, kelas || null, email || null, telepon || null, id);
+						.run(nama, username, role, nis || null, kelas || null, angkatan, email || null, telepon || null, id);
 				}
 				return { success: 'Data pengguna berhasil diperbarui.' };
 			}
@@ -67,14 +93,26 @@ export const actions: Actions = {
 			}
 			db()
 				.prepare(
-					`INSERT INTO users (nama, username, role, nis, kelas, email, telepon, password)
-					 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+					`INSERT INTO users (nama, username, role, nis, kelas, angkatan, email, telepon, password)
+					 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 				)
-				.run(nama, username, role, nis || null, kelas || null, email || null, telepon || null, hashPassword(password));
+				.run(nama, username, role, nis || null, kelas || null, angkatan, email || null, telepon || null, hashPassword(password));
 			return { success: 'Pengguna baru berhasil ditambahkan.' };
 		} catch {
 			return fail(500, { error: 'Terjadi kesalahan saat menyimpan data pengguna.' });
 		}
+	},
+
+	angkatan: async ({ request }) => {
+		const form = await request.formData();
+		const years = form
+			.getAll('tahun')
+			.map((v) => Number(v))
+			.filter((n) => Number.isInteger(n) && n >= 1990 && n <= 2100);
+		const baru = parseAngkatan(String(form.get('tahun_baru') ?? '').trim());
+		if (baru !== null) years.push(baru);
+		setAngkatanAktif(years);
+		return { success: `Pengaturan tahun angkatan aktif disimpan (${years.length} tahun).` };
 	},
 
 	hapus: async ({ request }) => {
@@ -151,8 +189,8 @@ export const actions: Actions = {
 
 		const stmtCheck = db().prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
 		const stmtInsert = db().prepare(
-			`INSERT INTO users (nama, username, role, nis, kelas, email, telepon, password)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+			`INSERT INTO users (nama, username, role, nis, kelas, angkatan, email, telepon, password)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 		);
 
 		let inserted = 0;
@@ -185,6 +223,7 @@ export const actions: Actions = {
 						role,
 						get('nis') || null,
 						get('kelas') || null,
+						parseAngkatan(get('angkatan')),
 						get('email') || null,
 						get('telepon') || null,
 						hashPassword(password)

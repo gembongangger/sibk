@@ -6,6 +6,14 @@
 
 	let { data }: { data: PageData } = $props();
 
+	const activeFilters = $derived(
+		[
+			data.kelas ? `Kelas ${data.kelas}` : '',
+			data.nama ? `Nama: ${data.nama}` : '',
+			data.nis ? `NIS: ${data.nis}` : ''
+		].filter(Boolean)
+	);
+
 	function printReport() {
 		window.print();
 	}
@@ -34,9 +42,29 @@
 		<label for="akhir" class="block mb-1 text-slate-600">Tanggal akhir</label>
 		<input id="akhir" type="date" name="akhir" value={data.akhir} class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs" />
 	</div>
+	<div>
+		<label for="kelas" class="block mb-1 text-slate-600">Kelas</label>
+		<select id="kelas" name="kelas" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-white">
+			<option value="">Semua kelas</option>
+			{#each data.kelasOptions as k (k)}
+				<option value={k} selected={k === data.kelas}>{k}</option>
+			{/each}
+		</select>
+	</div>
+	<div>
+		<label for="nama" class="block mb-1 text-slate-600">Nama siswa</label>
+		<input id="nama" type="text" name="nama" value={data.nama} placeholder="Cari nama…" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs w-40" />
+	</div>
+	<div>
+		<label for="nis" class="block mb-1 text-slate-600">NIS</label>
+		<input id="nis" type="text" name="nis" value={data.nis} placeholder="Cari NIS…" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs w-32" />
+	</div>
 	<button type="submit" class="mt-1 inline-flex items-center rounded-lg bg-primary-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">
 		Tampilkan
 	</button>
+	{#if data.kelas || data.nama || data.nis}
+		<a href="/reports" class="mt-1 inline-flex items-center text-primary-700 hover:underline">Reset</a>
+	{/if}
 </form>
 
 <div class="rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
@@ -44,6 +72,9 @@
 		<div>
 			<h2 class="text-sm font-semibold text-slate-900">Rekap Sesi Konseling</h2>
 			<p class="text-sm text-slate-500">Periode {formatDate(data.awal)} s.d. {formatDate(data.akhir)}</p>
+			{#if activeFilters.length > 0}
+				<p class="text-sm text-slate-500">Filter: {activeFilters.join(' · ')}</p>
+			{/if}
 		</div>
 		<div class="text-right text-sm text-slate-500">
 			<div>Total sesi: {data.sessions.length}</div>
@@ -91,7 +122,14 @@
 				{#each data.sessions as s (s.id)}
 					<tr class="border-b border-slate-50">
 						<td class="py-1.5 text-slate-600">{formatDateTime(s.tanggal)}</td>
-						<td class="py-1.5 text-slate-700">{s.nama_siswa}</td>
+						<td class="py-1.5 text-slate-700">
+							<div class="font-medium">{s.nama_siswa}</div>
+							{#if s.nis || s.kelas}
+								<div class="text-sm text-slate-500">
+									{#if s.nis}NIS {s.nis}{/if}{#if s.nis && s.kelas} · {/if}{#if s.kelas}{s.kelas}{/if}
+								</div>
+							{/if}
+						</td>
 						<td class="py-1.5 text-slate-700">
 							<div class="font-medium">{s.jenis}</div>
 							<div class="text-sm text-slate-500">{s.topik}</div>
