@@ -86,7 +86,7 @@
 	{#if $page.data.user && menuOpen}
 		<nav class="md:hidden border-t border-white/15 bg-primary-800/80">
 			<div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1">
-				<div class="text-[11px] text-primary-100 px-2 pb-1">
+				<div class="text-sm text-primary-100 px-2 pb-1">
 					Login sebagai <span class="font-semibold">{$page.data.user.nama}</span> ({$page.data.user.role})
 				</div>
 				{#each visible as link}

@@ -87,31 +87,31 @@
 						<tr class="border-b border-slate-50 align-top">
 							<td class="py-1.5 text-slate-600">
 								{formatDate(req.created_at)}
-								<div class="text-[10px] text-slate-400">{formatTime(req.created_at)}</div>
+								<div class="text-xs text-slate-400">{formatTime(req.created_at)}</div>
 							</td>
 							{#if data.isGuru}
 							<td class="py-1.5 text-slate-700">
 								{req.nama_siswa}
-								<a href="/siswa/{req.siswa_id}" class="block text-[10px] text-primary-700 hover:underline">Riwayat →</a>
+								<a href="/siswa/{req.siswa_id}" class="block text-xs text-primary-700 hover:underline">Riwayat →</a>
 							</td>
 						{/if}
 							<td class="py-1.5 text-slate-700">{req.jenis}</td>
 							<td class="py-1.5 text-slate-700">
 								<div class="font-medium">{req.topik}</div>
-								<div class="text-[10px] text-slate-500 line-clamp-2">{req.deskripsi}</div>
+								<div class="text-xs text-slate-500 line-clamp-2">{req.deskripsi}</div>
 							</td>
 							<td class="py-1.5 text-slate-700">{req.nama_guru ?? '-'}</td>
 							<td class="py-1.5"><StatusBadge status={req.status} /></td>
 							<td class="py-1.5 text-slate-700">{req.jadwal ? formatDateTime(req.jadwal) : '-'}</td>
 							{#if data.isGuru}
 								<td class="py-1.5 text-right">
-									<details class="text-[11px] text-slate-600">
+									<details class="text-sm text-slate-600">
 										<summary class="cursor-pointer text-primary-700">Kelola</summary>
 										<form method="POST" action="?/kelola" class="mt-2 space-y-1">
 											<input type="hidden" name="id" value={req.id} />
 											<div>
 												<label for="status-{req.id}" class="block mb-0.5">Status</label>
-												<select id="status-{req.id}" name="status" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-[11px]">
+												<select id="status-{req.id}" name="status" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-sm">
 													<option value="menunggu" selected={req.status === 'menunggu'}>Menunggu</option>
 													<option value="dijadwalkan" selected={req.status === 'dijadwalkan'}>Dijadwalkan</option>
 													<option value="selesai" selected={req.status === 'selesai'}>Selesai</option>
@@ -120,9 +120,9 @@
 											</div>
 											<div>
 												<label for="jadwal-{req.id}" class="block mb-0.5">Jadwal</label>
-												<input id="jadwal-{req.id}" type="datetime-local" name="jadwal" value={toDateTimeLocal(req.jadwal)} class="w-full rounded-lg border border-slate-200 px-2 py-1 text-[11px]" />
+												<input id="jadwal-{req.id}" type="datetime-local" name="jadwal" value={toDateTimeLocal(req.jadwal)} class="w-full rounded-lg border border-slate-200 px-2 py-1 text-sm" />
 											</div>
-											<button type="submit" class="mt-1 w-full rounded-lg bg-primary-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-primary-700">
+											<button type="submit" class="mt-1 w-full rounded-lg bg-primary-600 px-2 py-1 text-sm font-semibold text-white hover:bg-primary-700">
 												Simpan
 											</button>
 										</form>
@@ -134,15 +134,15 @@
 									{#if req.feedback_rating}
 										<div class="inline-flex flex-col items-end gap-0.5">
 											<Stars rating={req.feedback_rating} size="text-sm" />
-											<span class="text-[10px] text-slate-400">Sudah memberi umpan balik</span>
+											<span class="text-xs text-slate-400">Sudah memberi umpan balik</span>
 										</div>
 									{:else}
-										<a href="/feedback/{req.session_id}" class="text-[11px] text-primary-700 hover:underline">
+										<a href="/feedback/{req.session_id}" class="text-sm text-primary-700 hover:underline">
 											Beri Umpan Balik →
 										</a>
 									{/if}
 								{:else}
-									<span class="text-[10px] text-slate-300">—</span>
+									<span class="text-xs text-slate-300">—</span>
 								{/if}
 							</td>
 						{/if}

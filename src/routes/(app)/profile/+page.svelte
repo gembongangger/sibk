@@ -54,7 +54,7 @@
 											<td class="py-2 text-slate-700">
 												<div class="font-medium">{sesi.topik}</div>
 												{#if sesi.feedback_refleksi}
-													<div class="text-[10px] text-slate-500 line-clamp-2">{sesi.feedback_refleksi}</div>
+													<div class="text-xs text-slate-500 line-clamp-2">{sesi.feedback_refleksi}</div>
 												{/if}
 											</td>
 											<td class="py-2 text-slate-700">{sesi.nama_guru ?? '-'}</td>
@@ -62,7 +62,7 @@
 												{#if sesi.feedback_rating}
 													<Stars rating={sesi.feedback_rating} size="text-sm" />
 												{:else}
-													<span class="text-[10px] text-slate-400">Belum ada feedback</span>
+													<span class="text-xs text-slate-400">Belum ada feedback</span>
 												{/if}
 											</td>
 										</tr>

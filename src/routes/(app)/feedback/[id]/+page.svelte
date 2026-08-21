@@ -26,7 +26,7 @@
 			</p>
 			<div class="rounded-xl bg-slate-50 border border-slate-100 p-4 space-y-3">
 				<div>
-					<div class="text-[11px] text-slate-500 mb-1">Tingkat kepuasan</div>
+					<div class="text-sm text-slate-500 mb-1">Tingkat kepuasan</div>
 					<Stars rating={data.feedback.rating} size="text-lg" />
 					<div class="text-xs text-slate-700 mt-1">
 						{data.feedback.rating}/5 — {labels[data.feedback.rating - 1]}
@@ -34,11 +34,11 @@
 				</div>
 				{#if data.feedback.refleksi}
 					<div>
-						<div class="text-[11px] text-slate-500 mb-1">Refleksi Anda</div>
+						<div class="text-sm text-slate-500 mb-1">Refleksi Anda</div>
 						<p class="text-xs text-slate-700 whitespace-pre-line">{data.feedback.refleksi}</p>
 					</div>
 				{/if}
-				<div class="text-[10px] text-slate-400">Dikirim {formatDateTime(data.feedback.created_at)}</div>
+				<div class="text-xs text-slate-400">Dikirim {formatDateTime(data.feedback.created_at)}</div>
 			</div>
 			<a href="/" class="mt-4 inline-flex items-center rounded-full border border-primary-600 px-4 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-50">
 				Kembali ke dashboard

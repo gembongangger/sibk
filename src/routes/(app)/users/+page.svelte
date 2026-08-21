@@ -107,15 +107,15 @@
 					placeholder="Cari nama, username, NIS, kelas…"
 					class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs w-full md:w-64"
 				/>
-				<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-primary-700">
+				<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700">
 					Cari
 				</button>
 				{#if data.q}
-					<a href="/users" class="text-[11px] text-primary-700 hover:underline">Reset</a>
+					<a href="/users" class="text-sm text-primary-700 hover:underline">Reset</a>
 				{/if}
 			</form>
 		</div>
-		<p class="text-[11px] text-slate-500 mb-3">
+		<p class="text-sm text-slate-500 mb-3">
 			Menampilkan {data.total === 0 ? 0 : (data.page - 1) * 10 + 1}–{Math.min(data.page * 10, data.total)} dari {data.total} pengguna
 			{#if data.q} (hasil pencarian "{data.q}"){/if}
 		</p>
@@ -126,29 +126,29 @@
 						<a
 							href="/users/template.xlsx"
 							download
-							class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-primary-700"
+							class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-sm font-semibold text-white hover:bg-primary-700"
 						>
 							Unduh Template Excel
 						</a>
-						<span class="text-[11px] text-slate-500">Template berisi judul kolom + 1 baris contoh dan sheet petunjuk.</span>
+						<span class="text-sm text-slate-500">Template berisi judul kolom + 1 baris contoh dan sheet petunjuk.</span>
 					</div>
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 						<form method="POST" action="?/import" enctype="multipart/form-data" class="space-y-2">
-							<p class="text-[11px] font-semibold text-slate-700">Import dari Excel (.xlsx)</p>
+							<p class="text-sm font-semibold text-slate-700">Import dari Excel (.xlsx)</p>
 							<input type="file" name="file" accept=".xlsx,.xls" class="text-xs" />
-							<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-primary-700">
+							<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-sm font-semibold text-white hover:bg-primary-700">
 								Import Excel
 							</button>
 						</form>
 						<form method="POST" action="?/import" enctype="multipart/form-data" class="space-y-2">
-							<p class="text-[11px] font-semibold text-slate-700">Import dari CSV (titik koma)</p>
+							<p class="text-sm font-semibold text-slate-700">Import dari CSV (titik koma)</p>
 							<input type="file" name="file" accept=".csv" class="text-xs" />
-							<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-primary-700">
+							<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-sm font-semibold text-white hover:bg-primary-700">
 								Import CSV
 							</button>
 						</form>
 					</div>
-					<div class="text-[11px] text-slate-600">
+					<div class="text-sm text-slate-600">
 						Format header CSV:
 						<span class="font-mono bg-white border border-slate-200 rounded px-1">nama;username;role;nis;kelas;email;telepon;password</span>
 						Kolom wajib: nama, username, role. Jika password kosong, diisi 123456. Username yang sudah terdaftar dilewati.
@@ -180,7 +180,7 @@
 							<td class="py-1.5">{u.nama}</td>
 							<td class="py-1.5">{u.username}</td>
 							<td class="py-1.5">
-								<span class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium {ROLE_STYLE[u.role] ?? 'bg-slate-50 text-slate-600'}">
+								<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-medium {ROLE_STYLE[u.role] ?? 'bg-slate-50 text-slate-600'}">
 									{u.role}
 								</span>
 							</td>
@@ -210,7 +210,7 @@
 				<button
 					onclick={() => goPage(data.page - 1)}
 					disabled={data.page <= 1}
-					class="rounded-full border border-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+					class="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
 				>
 					← Sebelumnya
 				</button>
@@ -221,7 +221,7 @@
 						{:else}
 							<button
 								onclick={() => goPage(p)}
-								class="min-w-7 rounded-full px-2 py-1 text-[11px] font-medium {p === data.page
+								class="min-w-7 rounded-full px-2 py-1 text-sm font-medium {p === data.page
 									? 'bg-primary-600 text-white'
 									: 'border border-slate-200 text-slate-600 hover:bg-slate-50'}"
 							>
@@ -233,7 +233,7 @@
 				<button
 					onclick={() => goPage(data.page + 1)}
 					disabled={data.page >= data.totalPages}
-					class="rounded-full border border-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+					class="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
 				>
 					Berikutnya →
 				</button>

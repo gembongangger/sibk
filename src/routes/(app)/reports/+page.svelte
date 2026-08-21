@@ -43,9 +43,9 @@
 	<div class="flex justify-between items-center mb-3">
 		<div>
 			<h2 class="text-sm font-semibold text-slate-900">Rekap Sesi Konseling</h2>
-			<p class="text-[11px] text-slate-500">Periode {formatDate(data.awal)} s.d. {formatDate(data.akhir)}</p>
+			<p class="text-sm text-slate-500">Periode {formatDate(data.awal)} s.d. {formatDate(data.akhir)}</p>
 		</div>
-		<div class="text-right text-[11px] text-slate-500">
+		<div class="text-right text-sm text-slate-500">
 			<div>Total sesi: {data.sessions.length}</div>
 		</div>
 	</div>
@@ -53,17 +53,17 @@
 	{#if data.feedbackStats.average !== null}
 		<div class="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 print:hidden">
 			<div>
-				<div class="text-[11px] text-slate-500">Umpan balik terkumpul</div>
+				<div class="text-sm text-slate-500">Umpan balik terkumpul</div>
 				<div class="text-sm font-semibold text-slate-900">{data.feedbackStats.total}</div>
 			</div>
 			<div>
-				<div class="text-[11px] text-slate-500">Rata-rata kepuasan</div>
+				<div class="text-sm text-slate-500">Rata-rata kepuasan</div>
 				<div class="flex items-center gap-2">
 					<span class="text-sm font-semibold text-slate-900">{Number(data.feedbackStats.average).toFixed(1)} / 5</span>
 					<Stars rating={Math.round(data.feedbackStats.average)} size="text-sm" />
 				</div>
 			</div>
-			<div class="text-[10px] text-slate-400">
+			<div class="text-xs text-slate-400">
 				Evaluasi kepuasan layanan BK berdasarkan umpan balik siswa pada periode ini.
 			</div>
 		</div>
@@ -94,7 +94,7 @@
 						<td class="py-1.5 text-slate-700">{s.nama_siswa}</td>
 						<td class="py-1.5 text-slate-700">
 							<div class="font-medium">{s.jenis}</div>
-							<div class="text-[11px] text-slate-500">{s.topik}</div>
+							<div class="text-sm text-slate-500">{s.topik}</div>
 						</td>
 						<td class="py-1.5 text-slate-700">{s.nama_guru}</td>
 						<td class="py-1.5 text-slate-700">{s.tempat}</td>
@@ -105,7 +105,7 @@
 							{#if s.feedback_rating}
 								<Stars rating={s.feedback_rating} size="text-sm" />
 							{:else}
-								<span class="text-[10px] text-slate-300">—</span>
+								<span class="text-xs text-slate-300">—</span>
 							{/if}
 						</td>
 					</tr>

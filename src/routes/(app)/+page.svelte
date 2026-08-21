@@ -77,20 +77,20 @@
 							</div>
 							<div class="text-right shrink-0">
 								<StatusBadge status={req.status} />
-								<div class="text-[10px] text-slate-400 mt-1">{formatDateTime(req.created_at)}</div>
+								<div class="text-xs text-slate-400 mt-1">{formatDateTime(req.created_at)}</div>
 								{#if req.status === 'menunggu' || req.status === 'dijadwalkan'}
-									<details class="text-[11px] text-slate-600 mt-1">
+									<details class="text-sm text-slate-600 mt-1">
 										<summary class="cursor-pointer text-primary-700 inline-flex items-center gap-1">Kelola</summary>
 										<form method="POST" action="?/kelola" class="mt-1 space-y-1 w-56">
 											<input type="hidden" name="id" value={req.id} />
-											<select name="status" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-[11px]">
+											<select name="status" class="w-full rounded-lg border border-slate-200 px-2 py-1 text-sm">
 												<option value="menunggu" selected={req.status === 'menunggu'}>Menunggu</option>
 												<option value="dijadwalkan" selected={req.status === 'dijadwalkan'}>Dijadwalkan</option>
 												<option value="selesai">Selesai</option>
 												<option value="ditolak">Ditolak</option>
 											</select>
-											<input type="datetime-local" name="jadwal" value={toDateTimeLocal(req.jadwal)} class="w-full rounded-lg border border-slate-200 px-2 py-1 text-[11px]" />
-											<button type="submit" class="w-full rounded-lg bg-primary-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-primary-700">
+											<input type="datetime-local" name="jadwal" value={toDateTimeLocal(req.jadwal)} class="w-full rounded-lg border border-slate-200 px-2 py-1 text-sm" />
+											<button type="submit" class="w-full rounded-lg bg-primary-600 px-2 py-1 text-sm font-semibold text-white hover:bg-primary-700">
 												Simpan
 											</button>
 										</form>
@@ -149,7 +149,7 @@
 						</div>
 						<a
 							href="/feedback/{sesi.id}"
-							class="shrink-0 inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-[11px] font-medium text-white hover:bg-primary-700"
+							class="shrink-0 inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-sm font-medium text-white hover:bg-primary-700"
 						>
 							Beri Umpan Balik
 						</a>

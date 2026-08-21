@@ -110,11 +110,11 @@
 							<td class="py-1.5 text-slate-600">{formatDateTime(s.tanggal)}</td>
 							<td class="py-1.5 text-slate-700">
 								{s.nama_siswa}
-								<a href="/siswa/{s.siswa_id}" class="block text-[10px] text-primary-700 hover:underline">Riwayat →</a>
+								<a href="/siswa/{s.siswa_id}" class="block text-xs text-primary-700 hover:underline">Riwayat →</a>
 							</td>
 							<td class="py-1.5 text-slate-700">
 								<div class="font-medium">{s.jenis}</div>
-								<div class="text-[11px] text-slate-500">{s.topik}</div>
+								<div class="text-sm text-slate-500">{s.topik}</div>
 							</td>
 							<td class="py-1.5 text-slate-700">{s.tempat}</td>
 							<td class="py-1.5 text-slate-700">
@@ -127,12 +127,12 @@
 								{#if s.feedback_rating}
 									<Stars rating={s.feedback_rating} size="text-sm" />
 									{#if s.feedback_refleksi}
-										<div class="max-w-[180px] text-[10px] text-slate-500 mt-0.5 line-clamp-2 whitespace-pre-line" title={s.feedback_refleksi}>
+										<div class="max-w-[180px] text-xs text-slate-500 mt-0.5 line-clamp-2 whitespace-pre-line" title={s.feedback_refleksi}>
 											{s.feedback_refleksi}
 										</div>
 									{/if}
 								{:else}
-									<span class="text-[10px] text-slate-300">Belum ada</span>
+									<span class="text-xs text-slate-300">Belum ada</span>
 								{/if}
 							</td>
 						</tr>

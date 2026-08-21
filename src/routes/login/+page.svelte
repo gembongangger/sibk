@@ -52,7 +52,7 @@
 				</button>
 			</form>
 
-			<p class="mt-4 text-[11px] text-primary-100 text-center leading-snug">
+			<p class="mt-4 text-sm text-primary-100 text-center leading-snug">
 				Akun awal: username <span class="font-semibold">admin</span>, password <span class="font-semibold">admin123</span>.
 				Password dapat diubah setelah login.
 			</p>

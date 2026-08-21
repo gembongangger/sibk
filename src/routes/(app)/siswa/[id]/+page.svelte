@@ -55,12 +55,12 @@
 							{#if sesi.feedback_rating}
 								<Stars rating={sesi.feedback_rating} size="text-sm" />
 								{#if sesi.feedback_refleksi}
-									<div class="max-w-[180px] text-[10px] text-slate-500 mt-0.5 line-clamp-2 whitespace-pre-line" title={sesi.feedback_refleksi}>
+									<div class="max-w-[180px] text-xs text-slate-500 mt-0.5 line-clamp-2 whitespace-pre-line" title={sesi.feedback_refleksi}>
 										{sesi.feedback_refleksi}
 									</div>
 								{/if}
 							{:else}
-								<span class="text-[10px] text-slate-300">Belum ada</span>
+								<span class="text-xs text-slate-300">Belum ada</span>
 							{/if}
 						</td>
 					</tr>
