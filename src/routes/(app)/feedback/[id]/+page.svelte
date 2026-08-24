@@ -15,7 +15,7 @@
 
 <div class="max-w-xl">
 	{#if data.feedback}
-		<div class="rounded-2xl bg-white shadow-sm border border-slate-100 p-6">
+		<div class="card p-6">
 			<div class="flex items-center gap-2 mb-1">
 				<span class="text-lg font-semibold text-slate-900">Terima kasih!</span>
 				<span>🎉</span>
@@ -40,7 +40,7 @@
 				{/if}
 				<div class="text-xs text-slate-400">Dikirim {formatDateTime(data.feedback.created_at)}</div>
 			</div>
-			<a href="/" class="mt-4 inline-flex items-center rounded-full border border-primary-600 px-4 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-50">
+			<a href="/" class="mt-4 btn btn-outline-green">
 				Kembali ke dashboard
 			</a>
 		</div>
@@ -121,7 +121,7 @@
 				></textarea>
 			</div>
 
-			<button type="submit" class="w-full inline-flex items-center justify-center rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">
+			<button type="submit" class="w-full btn btn-primary">
 				Kirim Umpan Balik
 			</button>
 		</form>

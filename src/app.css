@@ -1,6 +1,9 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/inter';
 
 @theme {
+	--font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
 	--color-primary-50: #ecfdf3;
 	--color-primary-100: #d1fadf;
 	--color-primary-200: #a6f4c5;
@@ -21,5 +24,141 @@ html {
 @media print {
 	.print\:hidden {
 		display: none !important;
+	}
+}
+
+@layer components {
+	.card {
+		border-radius: 1rem;
+		background-color: var(--color-white);
+		border: 1px solid var(--color-slate-200);
+		box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+		padding: 1rem;
+		transition:
+			box-shadow 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.375rem;
+		font-size: 0.8125rem;
+		line-height: 1.25rem;
+		font-weight: 600;
+		border-radius: 9999px;
+		padding: 0.375rem 0.875rem;
+		cursor: pointer;
+		transition:
+			background-color 0.15s ease,
+			color 0.15s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+
+	.btn:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-primary-500);
+	}
+
+	.btn-primary {
+		background-color: var(--color-primary-600);
+		color: var(--color-white);
+		box-shadow: 0 1px 2px 0 rgb(2 122 72 / 0.25);
+	}
+
+	.btn-primary:hover {
+		background-color: var(--color-primary-700);
+	}
+
+	.btn-outline {
+		background-color: var(--color-white);
+		color: var(--color-slate-700);
+		border: 1px solid var(--color-slate-300);
+	}
+
+	.btn-outline:hover {
+		background-color: var(--color-slate-50);
+	}
+
+	.btn-outline-green {
+		background-color: transparent;
+		color: var(--color-primary-700);
+		border: 1px solid var(--color-primary-600);
+	}
+
+	.btn-outline-green:hover {
+		background-color: var(--color-primary-50);
+	}
+
+	.input {
+		width: 100%;
+		border-radius: 0.625rem;
+		border: 1px solid var(--color-slate-300);
+		background-color: var(--color-white);
+		padding: 0.4375rem 0.75rem;
+		font-size: 0.8125rem;
+		color: var(--color-slate-800);
+		transition:
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+
+	.input:focus {
+		outline: none;
+		border-color: var(--color-primary-500);
+		box-shadow: 0 0 0 3px rgb(18 183 106 / 0.15);
+	}
+
+	.data-table th {
+		text-align: left;
+		padding: 0.625rem 0.75rem 0.625rem 0;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-slate-400);
+		border-bottom: 1px solid var(--color-slate-200);
+		white-space: nowrap;
+	}
+
+	.data-table td {
+		padding: 0.625rem 0.75rem 0.625rem 0;
+		border-bottom: 1px solid var(--color-slate-100);
+		vertical-align: top;
+	}
+
+	.data-table tbody tr {
+		transition: background-color 0.12s ease;
+	}
+
+	.data-table tbody tr:hover {
+		background-color: rgb(248 250 252 / 0.85);
+	}
+
+	.data-table tbody tr:last-child td {
+		border-bottom: none;
+	}
+}
+
+dialog[open] {
+	animation: dialog-in 0.18s ease-out;
+}
+
+dialog[open]::backdrop {
+	animation: backdrop-in 0.18s ease-out;
+}
+
+@keyframes dialog-in {
+	from {
+		opacity: 0;
+		transform: translateY(10px) scale(0.97);
+	}
+}
+
+@keyframes backdrop-in {
+	from {
+		opacity: 0;
 	}
 }

@@ -33,7 +33,7 @@
 	<Alert type="error">{data.error}</Alert>
 {/if}
 
-<form method="GET" action="/reports" class="mb-4 text-xs flex flex-wrap items-end gap-3 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 print:hidden">
+<form method="GET" action="/reports" class="card mb-4 text-xs flex flex-wrap items-end gap-3 print:hidden">
 	<div>
 		<label for="awal" class="block mb-1 text-slate-600">Tanggal awal</label>
 		<input id="awal" type="date" name="awal" value={data.awal} class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs" />
@@ -59,7 +59,7 @@
 		<label for="nis" class="block mb-1 text-slate-600">NIS</label>
 		<input id="nis" type="text" name="nis" value={data.nis} placeholder="Cari NIS…" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs w-32" />
 	</div>
-	<button type="submit" class="mt-1 inline-flex items-center rounded-lg bg-primary-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">
+	<button type="submit" class="mt-1 btn btn-primary">
 		Tampilkan
 	</button>
 	{#if data.kelas || data.nama || data.nis}
@@ -67,7 +67,7 @@
 	{/if}
 </form>
 
-<div class="rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
+<div class="card">
 	<div class="flex justify-between items-center mb-3">
 		<div>
 			<h2 class="text-sm font-semibold text-slate-900">Rekap Sesi Konseling</h2>
@@ -101,16 +101,16 @@
 	{/if}
 
 	<div class="overflow-x-auto">
-		<table class="min-w-full text-xs align-top">
+		<table class="data-table min-w-full text-xs">
 			<thead>
 				<tr class="border-b border-slate-100 text-slate-500">
-					<th class="py-2 text-left">Tanggal</th>
-					<th class="py-2 text-left">Siswa</th>
-					<th class="py-2 text-left">Jenis/Topik</th>
-					<th class="py-2 text-left">Guru BK</th>
-					<th class="py-2 text-left">Tempat</th>
-					<th class="py-2 text-left">Ringkasan</th>
-					<th class="py-2 text-left">Kepuasan</th>
+					<th>Tanggal</th>
+					<th>Siswa</th>
+					<th>Jenis/Topik</th>
+					<th>Guru BK</th>
+					<th>Tempat</th>
+					<th>Ringkasan</th>
+					<th>Kepuasan</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -121,8 +121,8 @@
 				{/if}
 				{#each data.sessions as s (s.id)}
 					<tr class="border-b border-slate-50">
-						<td class="py-1.5 text-slate-600">{formatDateTime(s.tanggal)}</td>
-						<td class="py-1.5 text-slate-700">
+						<td class="text-slate-600">{formatDateTime(s.tanggal)}</td>
+						<td class="text-slate-700">
 							<div class="font-medium">{s.nama_siswa}</div>
 							{#if s.nis || s.kelas}
 								<div class="text-sm text-slate-500">
@@ -130,13 +130,13 @@
 								</div>
 							{/if}
 						</td>
-						<td class="py-1.5 text-slate-700">
+						<td class="text-slate-700">
 							<div class="font-medium">{s.jenis}</div>
 							<div class="text-sm text-slate-500">{s.topik}</div>
 						</td>
-						<td class="py-1.5 text-slate-700">{s.nama_guru}</td>
-						<td class="py-1.5 text-slate-700">{s.tempat}</td>
-						<td class="py-1.5 text-slate-700">
+						<td class="text-slate-700">{s.nama_guru}</td>
+						<td class="text-slate-700">{s.tempat}</td>
+						<td class="text-slate-700">
 							<div class="max-w-xs whitespace-pre-line">{s.catatan}</div>
 						</td>
 						<td class="py-1.5">

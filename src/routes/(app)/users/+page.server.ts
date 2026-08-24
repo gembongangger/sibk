@@ -129,7 +129,7 @@ export const actions: Actions = {
 
 	import: async ({ request }) => {
 		const form = await request.formData();
-		const file = form.get('file') ?? form.get('csv');
+		const file = form.get('file');
 		console.log(
 			'[import] content-type:', request.headers.get('content-type'),
 			'| field:', [...form.keys()].join(', '),
@@ -148,11 +148,9 @@ export const actions: Actions = {
 		try {
 			if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
 				rows = await parseXlsx(await file.arrayBuffer());
-			} else if (name.endsWith('.csv')) {
-				rows = parseCsv(new TextDecoder().decode(await file.arrayBuffer()));
 			} else {
 				console.error('[import] GAGAL: ekstensi tidak dikenali:', name);
-				return fail(400, { error: 'Format file harus berupa .csv atau .xlsx.' });
+				return fail(400, { error: 'Format file harus berupa .xlsx. Gunakan template Excel yang diunduh.' });
 			}
 		} catch (e) {
 			console.error('[import] GAGAL parse file:', (e as Error).message);
@@ -266,46 +264,5 @@ async function parseXlsx(buffer: ArrayBuffer): Promise<string[][]> {
 			);
 		rows.push(cells);
 	});
-	return rows.filter((r) => r.some((f) => f !== ''));
-}
-
-function parseCsv(text: string): string[][] {
-	const rows: string[][] = [];
-	let row: string[] = [];
-	let field = '';
-	let inQuotes = false;
-	const clean = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
-	for (let i = 0; i < clean.length; i++) {
-		const c = clean[i];
-		if (inQuotes) {
-			if (c === '"') {
-				if (clean[i + 1] === '"') {
-					field += '"';
-					i++;
-				} else {
-					inQuotes = false;
-				}
-			} else {
-				field += c;
-			}
-		} else if (c === '"') {
-			inQuotes = true;
-		} else if (c === ';') {
-			row.push(field.trim());
-			field = '';
-		} else if (c === '\n') {
-			row.push(field.trim());
-			field = '';
-			rows.push(row);
-			row = [];
-		} else {
-			field += c;
-		}
-	}
-	if (field !== '' || row.length > 0) {
-		row.push(field.trim());
-		rows.push(row);
-	}
 	return rows.filter((r) => r.some((f) => f !== ''));
 }

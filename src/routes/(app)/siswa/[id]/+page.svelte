@@ -14,20 +14,20 @@
 	</p>
 </div>
 
-<div class="rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
+<div class="card">
 	<h2 class="text-sm font-semibold text-slate-900 mb-3">Riwayat Sesi Konseling</h2>
 	<div class="overflow-x-auto">
-		<table class="min-w-full text-xs align-top">
+		<table class="data-table min-w-full text-xs">
 			<thead>
 				<tr class="border-b border-slate-100 text-slate-500">
-					<th class="py-2 text-left">Tanggal</th>
-					<th class="py-2 text-left">Jenis</th>
-					<th class="py-2 text-left">Topik</th>
-					<th class="py-2 text-left">Guru BK</th>
-					<th class="py-2 text-left">Tempat</th>
-					<th class="py-2 text-left">Catatan</th>
-					<th class="py-2 text-left">Tindak Lanjut</th>
-					<th class="py-2 text-left">Umpan Balik</th>
+					<th>Tanggal</th>
+					<th>Jenis</th>
+					<th>Topik</th>
+					<th>Guru BK</th>
+					<th>Tempat</th>
+					<th>Catatan</th>
+					<th>Tindak Lanjut</th>
+					<th>Umpan Balik</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -38,17 +38,17 @@
 				{/if}
 				{#each data.riwayat as sesi (sesi.id)}
 					<tr class="border-b border-slate-50">
-						<td class="py-1.5 text-slate-600 whitespace-nowrap">{formatDateTime(sesi.tanggal)}</td>
-						<td class="py-1.5 text-slate-700">{sesi.jenis}</td>
-						<td class="py-1.5 text-slate-700">
+						<td class="text-slate-600 whitespace-nowrap">{formatDateTime(sesi.tanggal)}</td>
+						<td class="text-slate-700">{sesi.jenis}</td>
+						<td class="text-slate-700">
 							<div class="font-medium">{sesi.topik}</div>
 						</td>
-						<td class="py-1.5 text-slate-700">{sesi.nama_guru ?? '-'}</td>
-						<td class="py-1.5 text-slate-700">{sesi.tempat}</td>
-						<td class="py-1.5 text-slate-700">
+						<td class="text-slate-700">{sesi.nama_guru ?? '-'}</td>
+						<td class="text-slate-700">{sesi.tempat}</td>
+						<td class="text-slate-700">
 							<div class="max-w-xs whitespace-pre-line">{sesi.catatan}</div>
 						</td>
-						<td class="py-1.5 text-slate-700">
+						<td class="text-slate-700">
 							<div class="max-w-xs whitespace-pre-line">{sesi.tindak_lanjut ?? '-'}</div>
 						</td>
 						<td class="py-1.5">

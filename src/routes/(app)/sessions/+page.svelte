@@ -37,7 +37,7 @@
 {/if}
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-	<div class="rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
+	<div class="card">
 		<h2 class="text-sm font-semibold text-slate-900 mb-3">Catat Sesi Baru</h2>
 		{#if data.openRequests.length === 0}
 			<p class="text-xs text-slate-500">Belum ada permohonan menunggu atau dijadwalkan.</p>
@@ -77,26 +77,26 @@
 					<label for="tindak_lanjut" class="block mb-1 text-slate-600">Rencana Tindak Lanjut</label>
 					<textarea id="tindak_lanjut" name="tindak_lanjut" rows="3" bind:value={tindakLanjut} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"></textarea>
 				</div>
-				<button type="submit" class="mt-2 w-full inline-flex items-center justify-center rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">
+				<button type="submit" class="mt-2 w-full btn btn-primary">
 					Simpan Sesi
 				</button>
 			</form>
 		{/if}
 	</div>
 
-	<div class="lg:col-span-2 rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
+	<div class="lg:col-span-2 card">
 		<h2 class="text-sm font-semibold text-slate-900 mb-3">Riwayat Sesi Konseling</h2>
 		<div class="overflow-x-auto">
-			<table class="min-w-full text-xs align-top">
+			<table class="data-table min-w-full text-xs">
 				<thead>
 					<tr class="border-b border-slate-100 text-slate-500">
-						<th class="py-2 text-left">Tanggal</th>
-						<th class="py-2 text-left">Siswa</th>
-						<th class="py-2 text-left">Jenis/Topik</th>
-						<th class="py-2 text-left">Tempat</th>
-						<th class="py-2 text-left">Catatan</th>
-						<th class="py-2 text-left">Tindak Lanjut</th>
-						<th class="py-2 text-left">Umpan Balik</th>
+						<th>Tanggal</th>
+						<th>Siswa</th>
+						<th>Jenis/Topik</th>
+						<th>Tempat</th>
+						<th>Catatan</th>
+						<th>Tindak Lanjut</th>
+						<th>Umpan Balik</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -107,20 +107,20 @@
 					{/if}
 					{#each data.sessions as s (s.id)}
 						<tr class="border-b border-slate-50">
-							<td class="py-1.5 text-slate-600">{formatDateTime(s.tanggal)}</td>
-							<td class="py-1.5 text-slate-700">
+							<td class="text-slate-600">{formatDateTime(s.tanggal)}</td>
+							<td class="text-slate-700">
 								{s.nama_siswa}
 								<a href="/siswa/{s.siswa_id}" class="block text-xs text-primary-700 hover:underline">Riwayat →</a>
 							</td>
-							<td class="py-1.5 text-slate-700">
+							<td class="text-slate-700">
 								<div class="font-medium">{s.jenis}</div>
 								<div class="text-sm text-slate-500">{s.topik}</div>
 							</td>
-							<td class="py-1.5 text-slate-700">{s.tempat}</td>
-							<td class="py-1.5 text-slate-700">
+							<td class="text-slate-700">{s.tempat}</td>
+							<td class="text-slate-700">
 								<div class="max-w-xs whitespace-pre-line">{s.catatan}</div>
 							</td>
-							<td class="py-1.5 text-slate-700">
+							<td class="text-slate-700">
 								<div class="max-w-xs whitespace-pre-line">{s.tindak_lanjut ?? '-'}</div>
 							</td>
 							<td class="py-1.5">

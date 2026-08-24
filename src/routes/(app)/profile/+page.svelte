@@ -24,7 +24,7 @@
 				<button
 					type="button"
 					onclick={() => (showRiwayat = !showRiwayat)}
-					class="inline-flex items-center rounded-lg bg-primary-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
+					class="btn btn-primary"
 				>
 					{showRiwayat ? 'Sembunyikan Riwayat' : 'Tampilkan Riwayat Konseling'}
 				</button>
@@ -36,14 +36,14 @@
 						<p class="text-xs text-slate-500 py-3 text-center">Belum ada riwayat konseling.</p>
 					{:else}
 						<div class="overflow-x-auto">
-							<table class="min-w-full text-xs">
+							<table class="data-table min-w-full text-xs">
 								<thead>
 									<tr class="border-b border-slate-100 text-slate-500">
-										<th class="py-2 text-left">Tanggal</th>
-										<th class="py-2 text-left">Jenis</th>
-										<th class="py-2 text-left">Topik</th>
-										<th class="py-2 text-left">Guru BK</th>
-										<th class="py-2 text-left">Rating</th>
+										<th>Tanggal</th>
+										<th>Jenis</th>
+										<th>Topik</th>
+										<th>Guru BK</th>
+										<th>Rating</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -116,7 +116,7 @@
 			<label for="password" class="block mb-1 text-slate-600">Password Baru</label>
 			<input id="password" type="password" name="password" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" placeholder="Kosongkan jika tidak diubah" />
 		</div>
-		<button type="submit" class="mt-1 inline-flex items-center rounded-lg bg-primary-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">
+		<button type="submit" class="mt-1 btn btn-primary">
 			Simpan Perubahan
 		</button>
 	</form>

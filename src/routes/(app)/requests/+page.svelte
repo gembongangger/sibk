@@ -33,7 +33,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 	{#if data.user.role === 'siswa'}
-		<div class="rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
+		<div class="card">
 			<h2 class="text-sm font-semibold text-slate-900 mb-3">Ajukan Permohonan Konseling</h2>
 			<form method="POST" action="?/ajukan" class="space-y-2 text-xs">
 				<div>
@@ -54,26 +54,26 @@
 					<label for="deskripsi" class="block mb-1 text-slate-600">Deskripsi Singkat</label>
 					<textarea id="deskripsi" name="deskripsi" rows="4" bind:value={deskripsi} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"></textarea>
 				</div>
-				<button type="submit" class="mt-2 w-full inline-flex items-center justify-center rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">
+				<button type="submit" class="mt-2 w-full btn btn-primary">
 					Kirim Permohonan
 				</button>
 			</form>
 		</div>
 	{/if}
 
-	<div class="{data.user.role === 'siswa' ? 'lg:col-span-2' : 'lg:col-span-3'} rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
+	<div class="{data.user.role === 'siswa' ? 'lg:col-span-2' : 'lg:col-span-3'} card">
 		<h2 class="text-sm font-semibold text-slate-900 mb-3">Daftar Permohonan</h2>
 		<div class="overflow-x-auto">
-			<table class="min-w-full text-xs">
+			<table class="data-table min-w-full text-xs">
 				<thead>
 					<tr class="border-b border-slate-100 text-slate-500">
-						<th class="py-2 text-left">Tanggal</th>
-						{#if data.isGuru}<th class="py-2 text-left">Siswa</th>{/if}
-						<th class="py-2 text-left">Jenis</th>
-						<th class="py-2 text-left">Topik</th>
-						<th class="py-2 text-left">Guru BK</th>
-						<th class="py-2 text-left">Status</th>
-						<th class="py-2 text-left">Jadwal</th>
+						<th>Tanggal</th>
+						{#if data.isGuru}<th>Siswa</th>{/if}
+						<th>Jenis</th>
+						<th>Topik</th>
+						<th>Guru BK</th>
+						<th>Status</th>
+						<th>Jadwal</th>
 						{#if data.isGuru}<th class="py-2 text-right">Aksi</th>{:else}<th class="py-2 text-right">Umpan Balik</th>{/if}
 					</tr>
 				</thead>
@@ -85,26 +85,26 @@
 					{/if}
 					{#each data.requests as req (req.id)}
 						<tr class="border-b border-slate-50 align-top">
-							<td class="py-1.5 text-slate-600">
+							<td class="text-slate-600">
 								{formatDate(req.created_at)}
 								<div class="text-xs text-slate-400">{formatTime(req.created_at)}</div>
 							</td>
 							{#if data.isGuru}
-							<td class="py-1.5 text-slate-700">
+							<td class="text-slate-700">
 								{req.nama_siswa}
 								<a href="/siswa/{req.siswa_id}" class="block text-xs text-primary-700 hover:underline">Riwayat →</a>
 							</td>
 						{/if}
-							<td class="py-1.5 text-slate-700">{req.jenis}</td>
-							<td class="py-1.5 text-slate-700">
+							<td class="text-slate-700">{req.jenis}</td>
+							<td class="text-slate-700">
 								<div class="font-medium">{req.topik}</div>
 								<div class="text-xs text-slate-500 line-clamp-2">{req.deskripsi}</div>
 							</td>
-							<td class="py-1.5 text-slate-700">{req.nama_guru ?? '-'}</td>
+							<td class="text-slate-700">{req.nama_guru ?? '-'}</td>
 							<td class="py-1.5"><StatusBadge status={req.status} /></td>
-							<td class="py-1.5 text-slate-700">{req.jadwal ? formatDateTime(req.jadwal) : '-'}</td>
+							<td class="text-slate-700">{req.jadwal ? formatDateTime(req.jadwal) : '-'}</td>
 							{#if data.isGuru}
-								<td class="py-1.5 text-right">
+								<td class="text-right">
 									<details class="text-sm text-slate-600">
 										<summary class="cursor-pointer text-primary-700">Kelola</summary>
 										<form method="POST" action="?/kelola" class="mt-2 space-y-1">
@@ -122,14 +122,14 @@
 												<label for="jadwal-{req.id}" class="block mb-0.5">Jadwal</label>
 												<input id="jadwal-{req.id}" type="datetime-local" name="jadwal" value={toDateTimeLocal(req.jadwal)} class="w-full rounded-lg border border-slate-200 px-2 py-1 text-sm" />
 											</div>
-											<button type="submit" class="mt-1 w-full rounded-lg bg-primary-600 px-2 py-1 text-sm font-semibold text-white hover:bg-primary-700">
+											<button type="submit" class="mt-1 w-full btn btn-primary w-full">
 												Simpan
 											</button>
 										</form>
 								</details>
 							</td>
 						{:else}
-							<td class="py-1.5 text-right whitespace-nowrap">
+							<td class="text-right whitespace-nowrap">
 								{#if req.status === 'selesai' && req.session_id}
 									{#if req.feedback_rating}
 										<div class="inline-flex flex-col items-end gap-0.5">

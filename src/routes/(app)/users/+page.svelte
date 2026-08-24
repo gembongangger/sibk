@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { tick } from 'svelte';
 	import type { PageData } from './$types';
 	import Alert from '$lib/components/Alert.svelte';
 	import { ROLE_STYLE } from '$lib/utils';
@@ -10,10 +9,8 @@
 
 	let importOpen = $state(false);
 
-	async function openImport() {
+	function openImport() {
 		importOpen = true;
-		await tick();
-		document.getElementById('import-panel')?.scrollIntoView({ behavior: 'smooth' });
 	}
 
 	function emptyForm(u: PageData['editUser']) {
@@ -38,15 +35,79 @@
 	// svelte-ignore state_referenced_locally -- initial value only; $effect below resyncs on data change
 	let form = $state(emptyForm(data.editUser));
 	let password = $state('');
+	let formOpen = $state(false);
+	let dlg: HTMLDialogElement | undefined = $state();
+	let dlgImport: HTMLDialogElement | undefined = $state();
 
 	$effect(() => {
 		form = emptyForm(data.editUser);
 		password = '';
 	});
 
-	async function resetForm() {
+	// Form terbuka otomatis saat membuka ?edit={id}
+	$effect(() => {
+		if (data.editUser) {
+			formOpen = true;
+		}
+	});
+
+	// Form tertutup kembali setelah aksi berhasil (simpan/hapus/import)
+	$effect(() => {
+		if ($page.form?.success) {
+			formOpen = false;
+			importOpen = false;
+		}
+	});
+
+	// Sinkronisasi state dengan elemen <dialog>
+	$effect(() => {
+		if (!dlg) return;
+		if (formOpen && !dlg.open) {
+			dlg.showModal();
+			dlg.querySelector<HTMLInputElement>('#nama')?.focus();
+		} else if (!formOpen && dlg.open) {
+			dlg.close();
+		}
+	});
+
+	// Sinkronisasi dialog import
+	$effect(() => {
+		if (!dlgImport) return;
+		if (importOpen && !dlgImport.open) {
+			dlgImport.showModal();
+		} else if (!importOpen && dlgImport.open) {
+			dlgImport.close();
+		}
+	});
+
+	function onDialogClick(e: MouseEvent) {
+		if (e.target === dlg) closeForm();
+	}
+
+	function onDialogClose() {
+		formOpen = false;
+		if (data.editUser) {
+			void goto('/users', { replaceState: true });
+		}
+	}
+
+	function onImportClick(e: MouseEvent) {
+		if (e.target === dlgImport) importOpen = false;
+	}
+
+	function onImportClose() {
+		importOpen = false;
+	}
+
+	async function openAddForm() {
 		await goto('/users', { replaceState: true });
-		document.getElementById('form-pengguna')?.scrollIntoView({ behavior: 'smooth' });
+		form = emptyForm(null);
+		password = '';
+		formOpen = true;
+	}
+
+	function closeForm() {
+		formOpen = false;
 	}
 
 	// svelte-ignore state_referenced_locally -- initial value only; re-initialized from URL on navigation
@@ -86,11 +147,11 @@
 	<div class="flex items-center gap-2">
 		<button
 			onclick={openImport}
-			class="inline-flex items-center rounded-full border border-primary-600 px-4 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-50"
+			class="btn btn-outline-green"
 		>
 			Import Massal
 		</button>
-		<button onclick={resetForm} class="inline-flex items-center rounded-full bg-primary-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-primary-700">
+		<button onclick={openAddForm} class="btn btn-primary">
 			Tambah Pengguna
 		</button>
 	</div>
@@ -103,8 +164,7 @@
 	<Alert type="success">{$page.form.success}</Alert>
 {/if}
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-	<div class="lg:col-span-2 rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
+<div class="card">
 		<div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
 			<h2 class="text-sm font-semibold text-slate-900">Daftar Pengguna</h2>
 			<form method="GET" action="/users" class="flex flex-wrap items-center gap-2">
@@ -126,7 +186,7 @@
 					<option value="aktif" selected={data.status === 'aktif'}>Aktif</option>
 					<option value="nonaktif" selected={data.status === 'nonaktif'}>Non-aktif</option>
 				</select>
-				<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-700">
+				<button type="submit" class="btn btn-primary">
 					Cari
 				</button>
 				{#if data.q || data.angkatan || data.status}
@@ -138,43 +198,7 @@
 			Menampilkan {data.total === 0 ? 0 : (data.page - 1) * 10 + 1}–{Math.min(data.page * 10, data.total)} dari {data.total} pengguna
 			{#if data.q} (hasil pencarian "{data.q}"){/if}
 		</p>
-			<details id="import-panel" bind:open={importOpen} class="text-xs text-slate-600">
-				<summary class="cursor-pointer text-primary-700">Import Data Massal (CSV / Excel)</summary>
-				<div class="mt-2 p-3 border border-slate-100 rounded-xl bg-slate-50 space-y-3">
-					<div class="flex flex-col md:flex-row md:items-center gap-2">
-						<a
-							href="/users/template.xlsx"
-							download
-							class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-sm font-semibold text-white hover:bg-primary-700"
-						>
-							Unduh Template Excel
-						</a>
-						<span class="text-sm text-slate-500">Template berisi judul kolom + 1 baris contoh dan sheet petunjuk.</span>
-					</div>
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-						<form method="POST" action="?/import" enctype="multipart/form-data" class="space-y-2">
-							<p class="text-sm font-semibold text-slate-700">Import dari Excel (.xlsx)</p>
-							<input type="file" name="file" accept=".xlsx,.xls" class="text-xs" />
-							<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-sm font-semibold text-white hover:bg-primary-700">
-								Import Excel
-							</button>
-						</form>
-						<form method="POST" action="?/import" enctype="multipart/form-data" class="space-y-2">
-							<p class="text-sm font-semibold text-slate-700">Import dari CSV (titik koma)</p>
-							<input type="file" name="file" accept=".csv" class="text-xs" />
-							<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-sm font-semibold text-white hover:bg-primary-700">
-								Import CSV
-							</button>
-						</form>
-					</div>
-					<div class="text-sm text-slate-600">
-						Format header CSV:
-						<span class="font-mono bg-white border border-slate-200 rounded px-1">nama;username;role;nis;kelas;angkatan;email;telepon;password</span>
-						Kolom wajib: nama, username, role. Jika password kosong, diisi 123456. Username yang sudah terdaftar dilewati.
-					</div>
-				</div>
-			</details>
-			<details class="text-xs text-slate-600 mt-2">
+			<details class="text-xs text-slate-600">
 				<summary class="cursor-pointer text-primary-700">Tahun Angkatan Aktif</summary>
 				<div class="mt-2 p-3 border border-slate-100 rounded-xl bg-slate-50 space-y-2">
 					<p>
@@ -199,7 +223,7 @@
 						{/if}
 						<div class="flex flex-wrap items-center gap-2">
 							<input type="number" name="tahun_baru" min="1990" max="2100" placeholder="Tambah tahun lain…" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs w-44" />
-							<button type="submit" class="inline-flex items-center rounded-full bg-primary-600 px-3 py-1 text-sm font-semibold text-white hover:bg-primary-700">
+							<button type="submit" class="btn btn-primary">
 								Simpan Pengaturan
 							</button>
 						</div>
@@ -207,16 +231,16 @@
 				</div>
 			</details>
 		<div class="overflow-x-auto">
-			<table class="min-w-full text-xs">
+			<table class="data-table min-w-full text-xs">
 				<thead>
 					<tr class="border-b border-slate-100 text-slate-500">
-						<th class="py-2 text-left">Nama</th>
-						<th class="py-2 text-left">Username</th>
-						<th class="py-2 text-left">Peran</th>
-						<th class="py-2 text-left">Kelas/NIP</th>
-						<th class="py-2 text-left">Angkatan</th>
-						<th class="py-2 text-left">Status</th>
-						<th class="py-2 text-left">Kontak</th>
+						<th>Nama</th>
+						<th>Username</th>
+						<th>Peran</th>
+						<th>Kelas/NIP</th>
+						<th>Angkatan</th>
+						<th>Status</th>
+						<th>Kontak</th>
 						<th class="py-2 text-right">Aksi</th>
 					</tr>
 				</thead>
@@ -237,8 +261,8 @@
 									{u.role}
 								</span>
 							</td>
-							<td class="py-1.5 text-slate-600">{u.kelas || u.nis || '-'}</td>
-							<td class="py-1.5 text-slate-600">{u.role === 'siswa' ? (u.angkatan ?? '-') : '—'}</td>
+							<td class="text-slate-600">{u.kelas || u.nis || '-'}</td>
+							<td class="text-slate-600">{u.role === 'siswa' ? (u.angkatan ?? '-') : '—'}</td>
 							<td class="py-1.5">
 								{#if u.role === 'siswa'}
 									<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-medium {isAktif(u) ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
@@ -248,8 +272,8 @@
 									<span class="text-sm text-slate-400">—</span>
 								{/if}
 							</td>
-							<td class="py-1.5 text-slate-600">{u.email || u.telepon || '-'}</td>
-							<td class="py-1.5 text-right whitespace-nowrap">
+							<td class="text-slate-600">{u.email || u.telepon || '-'}</td>
+							<td class="text-right whitespace-nowrap">
 								<a href="/users?edit={u.id}" class="text-xs text-primary-700 hover:underline mr-2">Ubah</a>
 								{#if u.role === 'siswa'}
 									<a href="/siswa/{u.id}" class="text-xs text-primary-700 hover:underline mr-2">Riwayat</a>
@@ -304,10 +328,25 @@
 		{/if}
 	</div>
 
-	<div class="rounded-2xl bg-white shadow-sm border border-slate-100 p-4">
-		<h2 class="text-sm font-semibold text-slate-900 mb-3">
-			{data.editUser ? 'Ubah Pengguna' : 'Tambah Pengguna'}
-		</h2>
+	<dialog
+		bind:this={dlg}
+		class="m-auto w-[min(28rem,calc(100vw-2rem))] max-h-[85vh] overflow-y-auto rounded-2xl bg-white p-4 shadow-xl [&::backdrop]:bg-slate-900/50 [&::backdrop]:backdrop-blur-sm"
+		onclick={onDialogClick}
+		onclose={onDialogClose}
+	>
+			<div class="flex items-center justify-between mb-3">
+				<h2 class="text-sm font-semibold text-slate-900">
+					{data.editUser ? 'Ubah Pengguna' : 'Tambah Pengguna'}
+				</h2>
+				<button
+					type="button"
+					onclick={closeForm}
+					class="text-slate-400 hover:text-slate-600 text-lg leading-none"
+					aria-label="Tutup form"
+				>
+					&times;
+				</button>
+			</div>
 		<form method="POST" action="?/simpan" class="space-y-2 text-xs" id="form-pengguna">
 			<input type="hidden" name="id" value={form.id} />
 			<div>
@@ -350,9 +389,53 @@
 				<label for="password" class="block mb-1 text-slate-600">Password {data.editUser ? '(kosongkan jika tidak diubah)' : ''}</label>
 				<input id="password" type="password" name="password" bind:value={password} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" />
 			</div>
-			<button type="submit" class="mt-2 w-full inline-flex items-center justify-center rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700">
-				Simpan
+			<div class="mt-2 flex gap-2">
+				<button type="submit" class="flex-1 btn btn-primary">
+					Simpan
+				</button>
+				<button type="button" onclick={closeForm} class="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
+					Batal
+				</button>
+			</div>
+ 			</form>
+	</dialog>
+
+	<dialog
+		bind:this={dlgImport}
+		class="m-auto w-[min(34rem,calc(100vw-2rem))] max-h-[85vh] overflow-y-auto rounded-2xl bg-white p-4 shadow-xl [&::backdrop]:bg-slate-900/50 [&::backdrop]:backdrop-blur-sm"
+		onclick={onImportClick}
+		onclose={onImportClose}
+	>
+		<div class="flex items-center justify-between mb-3">
+			<h2 class="text-sm font-semibold text-slate-900">Import Data Massal (Excel)</h2>
+			<button
+				type="button"
+				onclick={() => (importOpen = false)}
+				class="text-slate-400 hover:text-slate-600 text-lg leading-none"
+				aria-label="Tutup import"
+			>
+				&times;
 			</button>
-		</form>
-	</div>
-</div>
+		</div>
+		<div class="space-y-3 text-xs">
+			<div class="flex flex-col md:flex-row md:items-center gap-2">
+				<a
+					href="/users/template.xlsx"
+					download
+					class="btn btn-primary"
+				>
+					Unduh Template Excel
+				</a>
+				<span class="text-sm text-slate-500">Template berisi judul kolom + 1 baris contoh dan sheet petunjuk.</span>
+			</div>
+			<form method="POST" action="?/import" enctype="multipart/form-data" class="space-y-2 p-3 border border-slate-100 rounded-xl bg-slate-50">
+				<p class="text-sm font-semibold text-slate-700">Import dari Excel (.xlsx)</p>
+				<input type="file" name="file" accept=".xlsx,.xls" class="text-xs" />
+				<div>
+					<button type="submit" class="btn btn-primary">
+						Import Excel
+					</button>
+				</div>
+			</form>
+		</div>
+	</dialog>
