@@ -32,6 +32,7 @@ export interface RequestRow {
 	created_at: string;
 	nama_siswa?: string;
 	nama_guru?: string | null;
+	kelas_siswa?: string | null;
 }
 
 export interface SessionRow {
@@ -252,7 +253,7 @@ export function listRequestsForSiswa(siswaId: number): StudentRequestRow[] {
 export function listAllRequests(): RequestRow[] {
 	return db()
 		.prepare(
-			`SELECT r.*, s.nama AS nama_siswa, g.nama AS nama_guru
+			`SELECT r.*, s.nama AS nama_siswa, s.kelas AS kelas_siswa, g.nama AS nama_guru
 			 FROM counseling_requests r
 			 JOIN users s ON s.id = r.siswa_id
 			 LEFT JOIN users g ON g.id = r.guru_id

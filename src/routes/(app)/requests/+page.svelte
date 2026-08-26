@@ -68,7 +68,7 @@
 				<thead>
 					<tr class="border-b border-slate-100 text-slate-500">
 						<th>Tanggal</th>
-						{#if data.isGuru}<th>Siswa</th>{/if}
+						{#if data.isGuru}<th>Siswa</th><th>Kelas</th>{/if}
 						<th>Jenis</th>
 						<th>Topik</th>
 						<th>Guru BK</th>
@@ -80,7 +80,7 @@
 				<tbody>
 					{#if data.requests.length === 0}
 						<tr>
-							<td colspan={data.isGuru ? 8 : 7} class="py-3 text-center text-slate-500">Belum ada permohonan.</td>
+							<td colspan={data.isGuru ? 9 : 7} class="py-3 text-center text-slate-500">Belum ada permohonan.</td>
 						</tr>
 					{/if}
 					{#each data.requests as req (req.id)}
@@ -94,6 +94,7 @@
 								{req.nama_siswa}
 								<a href="/siswa/{req.siswa_id}" class="block text-xs text-primary-700 hover:underline">Riwayat →</a>
 							</td>
+							<td class="text-slate-600">{req.kelas_siswa ?? '-'}</td>
 						{/if}
 							<td class="text-slate-700">{req.jenis}</td>
 							<td class="text-slate-700">
