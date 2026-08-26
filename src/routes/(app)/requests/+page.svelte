@@ -11,6 +11,7 @@
 	let jenis = $state('');
 	let topik = $state('');
 	let deskripsi = $state('');
+	let jadwal = $state('');
 </script>
 
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -53,6 +54,18 @@
 				<div>
 					<label for="deskripsi" class="block mb-1 text-slate-600">Deskripsi Singkat</label>
 					<textarea id="deskripsi" name="deskripsi" rows="4" bind:value={deskripsi} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"></textarea>
+				</div>
+				<div>
+					<label for="jadwal" class="block mb-1 text-slate-600">Jadwal yang Diinginkan <span class="text-slate-400">(opsional)</span></label>
+					<input
+						id="jadwal"
+						type="datetime-local"
+						name="jadwal"
+						bind:value={jadwal}
+						min={new Date().toISOString().slice(0, 16)}
+						class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"
+					/>
+					<p class="text-[11px] text-slate-400 mt-1">Jika dikosongkan, guru BK akan menentukan jadwal sendiri.</p>
 				</div>
 				<button type="submit" class="mt-2 w-full btn btn-primary">
 					Kirim Permohonan

@@ -21,6 +21,7 @@ export const actions: Actions = {
 		const jenis = String(form.get('jenis') ?? '').trim();
 		const topik = String(form.get('topik') ?? '').trim();
 		const deskripsi = String(form.get('deskripsi') ?? '').trim();
+		const jadwal = String(form.get('jadwal') ?? '').trim();
 
 		if (!jenis || !topik || !deskripsi) {
 			return fail(400, {
@@ -31,10 +32,10 @@ export const actions: Actions = {
 
 		db()
 			.prepare(
-				`INSERT INTO counseling_requests (siswa_id, jenis, topik, deskripsi)
-				 VALUES (?, ?, ?, ?)`
+				`INSERT INTO counseling_requests (siswa_id, jenis, topik, deskripsi, jadwal)
+				 VALUES (?, ?, ?, ?, ?)`
 			)
-			.run(user.id, jenis, topik, deskripsi);
+			.run(user.id, jenis, topik, deskripsi, jadwal || null);
 
 		return { success: 'Permohonan konseling berhasil dikirim.' };
 	},
