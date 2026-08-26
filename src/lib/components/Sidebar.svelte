@@ -76,13 +76,13 @@
 {/if}
 
 <aside
-	class="print:hidden group/sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white border-r border-slate-200/70 shadow-2xl shadow-slate-900/10 md:shadow-none {mobileOpen
+	class="print:hidden group/sidebar fixed left-0 bottom-0 top-14 md:top-0 z-50 flex w-64 flex-col bg-white border-r border-slate-200/70 shadow-2xl shadow-slate-900/10 md:shadow-none {mobileOpen
 		? ''
 		: 'drawer-closed'} {collapsed
 		? 'md:w-[4.5rem]'
 		: ''}"
 >
-	<div class="relative flex items-center gap-3 h-16 shrink-0 border-b border-slate-100 px-5 {collapsed ? 'md:px-4 md:justify-center' : ''}">
+	<div class="relative hidden md:flex items-center gap-3 h-16 shrink-0 border-b border-slate-100 px-5 {collapsed ? 'md:px-4 md:justify-center' : ''}">
 		<img src="/logo.png" alt="Logo MAN 1 Jember" class="h-9 w-9 shrink-0 rounded-full ring-1 ring-slate-200" />
 		<div class="leading-tight min-w-0 whitespace-nowrap {collapsed ? 'md:hidden' : ''}">
 			<div class="text-sm font-semibold tracking-tight text-slate-900">BK MAN 1 Jember</div>
