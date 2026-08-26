@@ -10,7 +10,8 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"seed:demo": "tsx scripts/seed-demo.ts"
+		"seed:demo": "tsx scripts/seed-demo.ts",
+		"reset-admin": "tsx scripts/reset-admin.ts"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",
