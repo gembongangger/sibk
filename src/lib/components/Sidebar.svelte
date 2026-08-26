@@ -46,7 +46,7 @@
 	}
 </script>
 
-<div class="md:hidden sticky top-0 z-30 flex h-14 items-center justify-between px-4 bg-white/85 backdrop-blur-md border-b border-slate-200/70 print:hidden">
+<div class="md:hidden sticky top-0 z-[60] flex h-14 items-center justify-between px-4 bg-white/85 backdrop-blur-md border-b border-slate-200/70 print:hidden">
 	<a href="/" class="flex items-center gap-2.5">
 		<img src="/logo.png" alt="Logo MAN 1 Jember" class="h-8 w-8 rounded-full ring-1 ring-slate-200" />
 		<span class="text-sm font-semibold tracking-tight text-slate-900">BK MAN 1 Jember</span>
@@ -76,9 +76,9 @@
 {/if}
 
 <aside
-	class="print:hidden group/sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white border-r border-slate-200/70 transition-all duration-200 ease-out {mobileOpen
-		? 'translate-x-0 shadow-2xl shadow-slate-900/10'
-		: '-translate-x-full'} md:translate-x-0 {collapsed
+	class="print:hidden group/sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white border-r border-slate-200/70 shadow-2xl shadow-slate-900/10 md:shadow-none {mobileOpen
+		? ''
+		: 'drawer-closed'} {collapsed
 		? 'md:w-[4.5rem]'
 		: ''}"
 >
@@ -147,7 +147,7 @@
 	{/if}
 </aside>
 
-<div class="transition-[padding] duration-200 ease-out min-h-screen flex flex-col pl-0 {mobileOpen ? '' : ''} {collapsed ? 'md:pl-[4.5rem]' : 'md:pl-64'}">
+<div class="transition-[padding] duration-200 ease-out min-h-screen flex flex-col pl-0 {collapsed ? 'md:pl-[4.5rem]' : 'md:pl-64'}">
 	<main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
 		{@render children()}
 	</main>
@@ -159,3 +159,16 @@
 		</div>
 	</footer>
 </div>
+
+<style>
+	aside {
+		will-change: transform;
+		transition: transform 0.2s ease-out;
+	}
+
+	@media (max-width: 767.98px) {
+		aside.drawer-closed {
+			transform: translateX(-100%);
+		}
+	}
+</style>
