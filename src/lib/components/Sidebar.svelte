@@ -76,11 +76,11 @@
 {/if}
 
 <aside
-	class="print:hidden group/sidebar fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-slate-200/70 transition-all duration-200 ease-out w-[4.5rem] {mobileOpen
+	class="print:hidden group/sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white border-r border-slate-200/70 transition-all duration-200 ease-out {mobileOpen
 		? 'translate-x-0 shadow-2xl shadow-slate-900/10'
 		: '-translate-x-full'} md:translate-x-0 {collapsed
 		? 'md:w-[4.5rem]'
-		: 'md:w-64'}"
+		: ''}"
 >
 	<div class="relative flex items-center gap-3 h-16 shrink-0 border-b border-slate-100 px-5 {collapsed ? 'md:px-4 md:justify-center' : ''}">
 		<img src="/logo.png" alt="Logo MAN 1 Jember" class="h-9 w-9 shrink-0 rounded-full ring-1 ring-slate-200" />
