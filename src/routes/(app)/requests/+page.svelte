@@ -12,6 +12,7 @@
 	let topik = $state('');
 	let deskripsi = $state('');
 	let jadwal = $state('');
+	let guruId = $state('');
 </script>
 
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -45,6 +46,15 @@
 						<option value="Sosial">Sosial</option>
 						<option value="Belajar">Belajar</option>
 						<option value="Karier">Karier</option>
+					</select>
+				</div>
+				<div>
+					<label for="guru_id" class="block mb-1 text-slate-600">Guru BK</label>
+					<select id="guru_id" name="guru_id" bind:value={guruId} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+						<option value="">Pilih guru BK</option>
+						{#each data.guruList as guru (guru.id)}
+							<option value={guru.id}>{guru.nama}</option>
+						{/each}
 					</select>
 				</div>
 				<div>

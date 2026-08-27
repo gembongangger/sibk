@@ -274,6 +274,12 @@ export function listOpenRequests(): RequestRow[] {
 		.all() as RequestRow[];
 }
 
+export function listGuruBK(): { id: number; nama: string }[] {
+	return db()
+		.prepare(`SELECT id, nama FROM users WHERE role = 'guru' ORDER BY nama`)
+		.all() as { id: number; nama: string }[];
+}
+
 export function listSessionsForSiswa(siswaId: number): SessionRow[] {
 	return db()
 		.prepare(

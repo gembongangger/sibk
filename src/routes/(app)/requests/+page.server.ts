@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { db, listAllRequests, listRequestsForSiswa, updateRequestStatus, type StudentRequestRow } from '$lib/server/db';
+import { db, listAllRequests, listGuruBK, listRequestsForSiswa, updateRequestStatus, type StudentRequestRow } from '$lib/server/db';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals }) => {
@@ -7,7 +7,8 @@ export const load: PageServerLoad = ({ locals }) => {
 	const isGuru = user.role === 'guru' || user.role === 'admin';
 	return {
 		isGuru,
-		requests: (isGuru ? listAllRequests() : listRequestsForSiswa(user.id)) as StudentRequestRow[]
+		requests: (isGuru ? listAllRequests() : listRequestsForSiswa(user.id)) as StudentRequestRow[],
+		guruList: listGuruBK()
 	};
 };
 
@@ -22,6 +23,7 @@ export const actions: Actions = {
 		const topik = String(form.get('topik') ?? '').trim();
 		const deskripsi = String(form.get('deskripsi') ?? '').trim();
 		const jadwal = String(form.get('jadwal') ?? '').trim();
+		const guruId = Number(form.get('guru_id') ?? 0);
 
 		if (!jenis || !topik || !deskripsi) {
 			return fail(400, {
@@ -30,12 +32,19 @@ export const actions: Actions = {
 			});
 		}
 
+		if (!guruId) {
+			return fail(400, {
+				error: 'Pilih guru BK yang akan membimbing Anda.',
+				form: { jenis, topik, deskripsi }
+			});
+		}
+
 		db()
 			.prepare(
-				`INSERT INTO counseling_requests (siswa_id, jenis, topik, deskripsi, jadwal)
-				 VALUES (?, ?, ?, ?, ?)`
+				`INSERT INTO counseling_requests (siswa_id, jenis, topik, deskripsi, jadwal, guru_id)
+				 VALUES (?, ?, ?, ?, ?, ?)`
 			)
-			.run(user.id, jenis, topik, deskripsi, jadwal || null);
+			.run(user.id, jenis, topik, deskripsi, jadwal || null, guruId);
 
 		return { success: 'Permohonan konseling berhasil dikirim.' };
 	},
