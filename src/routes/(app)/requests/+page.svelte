@@ -38,6 +38,8 @@
 	function pickSlot(time: string) {
 		jadwal = time;
 		const form = document.getElementById('form-ajukan') as HTMLFormElement;
+		const hidden = form?.elements.namedItem('jadwal') as HTMLInputElement | undefined;
+		if (hidden) hidden.value = time;
 		form?.requestSubmit();
 	}
 </script>
@@ -113,7 +115,7 @@
 					<textarea id="deskripsi" name="deskripsi" rows="4" bind:value={deskripsi} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"></textarea>
 				</div>
 				<div>
-					<label for="jadwal-date" class="block mb-1 text-slate-600">Tanggal Konseling <span class="text-slate-400">(opsional)</span></label>
+					<label for="jadwal-date" class="block mb-1 text-slate-600">Tanggal Konseling</label>
 					<input
 						id="jadwal-date"
 						type="date"
