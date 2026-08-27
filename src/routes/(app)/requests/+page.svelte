@@ -32,12 +32,32 @@
 {#if $page.form?.success}
 	<Alert type="success">{$page.form.success}</Alert>
 {/if}
+{#if $page.form?.slotsConflict && $page.form?.availableSlots?.length}
+	<div class="card border-amber-200 bg-amber-50">
+		<h3 class="text-sm font-semibold text-amber-800 mb-2">Waktu yang Tersedia</h3>
+		<p class="text-xs text-amber-700 mb-3">Pilih salah satu waktu berikut untuk melanjutkan:</p>
+		<div class="flex flex-wrap gap-2">
+			{#each $page.form.availableSlots as slot}
+				<button
+					type="submit"
+					form="form-ajukan"
+					name="jadwal"
+					value={slot.time}
+					class="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100 hover:border-emerald-400"
+				>
+					<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+					{slot.time.slice(11, 16)}
+				</button>
+			{/each}
+		</div>
+	</div>
+{/if}
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 	{#if data.user.role === 'siswa'}
 		<div class="card">
 			<h2 class="text-sm font-semibold text-slate-900 mb-3">Ajukan Permohonan Konseling</h2>
-			<form method="POST" action="?/ajukan" class="space-y-2 text-xs">
+			<form method="POST" action="?/ajukan" id="form-ajukan" class="space-y-2 text-xs">
 				<div>
 					<label for="jenis" class="block mb-1 text-slate-600">Jenis Layanan</label>
 					<select id="jenis" name="jenis" bind:value={jenis} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">

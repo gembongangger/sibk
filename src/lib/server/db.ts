@@ -280,6 +280,105 @@ export function listGuruBK(): { id: number; nama: string }[] {
 		.all() as { id: number; nama: string }[];
 }
 
+export function checkGuruAvailability(
+	guruId: number,
+	jadwal: string,
+	excludeRequestId?: number
+): { available: boolean; conflictSource?: 'request' | 'session'; conflictDetail?: string } {
+	const d = db();
+
+	const conflictReq = d
+		.prepare(
+			`SELECT r.id, r.status, s.nama AS nama_siswa
+			 FROM counseling_requests r
+			 JOIN users s ON s.id = r.siswa_id
+			 WHERE r.guru_id = ? AND r.jadwal = ?
+			   AND r.status IN ('menunggu','dijadwalkan')
+			   AND r.id != ?
+			 LIMIT 1`
+		)
+		.get(guruId, jadwal, excludeRequestId ?? 0) as
+		| { id: number; status: string; nama_siswa: string }
+		| undefined;
+
+	if (conflictReq) {
+		return {
+			available: false,
+			conflictSource: 'request',
+			conflictDetail: `Sudah dijadwalkan untuk ${conflictReq.nama_siswa} (${conflictReq.status})`
+		};
+	}
+
+	const conflictSession = d
+		.prepare(
+			`SELECT cs.id, s.nama AS nama_siswa
+			 FROM counseling_sessions cs
+			 JOIN users s ON s.id = cs.siswa_id
+			 WHERE cs.guru_id = ? AND cs.tanggal = ?
+			 LIMIT 1`
+		)
+		.get(guruId, jadwal) as { id: number; nama_siswa: string } | undefined;
+
+	if (conflictSession) {
+		return {
+			available: false,
+			conflictSource: 'session',
+			conflictDetail: `Sesi konseling sudah tercatat dengan ${conflictSession.nama_siswa}`
+		};
+	}
+
+	return { available: true };
+}
+
+export function suggestAvailableSlots(
+	guruId: number,
+	date: string
+): { time: string; available: boolean; reason?: string }[] {
+	const d = db();
+	const slots: { time: string; available: boolean; reason?: string }[] = [];
+
+	for (let h = 7; h <= 14; h++) {
+		for (const m of [0, 30]) {
+			if (h === 7 && m === 0) continue;
+			if (h === 15 && m > 0) break;
+			const hh = String(h).padStart(2, '0');
+			const mm = String(m).padStart(2, '0');
+			slots.push({ time: `${date} ${hh}:${mm}:00`, available: true });
+		}
+	}
+	if (slots.length === 0 || slots[slots.length - 1].time !== `${date} 14:30:00`) {
+		slots.push({ time: `${date} 14:30:00`, available: true });
+	}
+
+	const bookedReq = d
+		.prepare(
+			`SELECT jadwal FROM counseling_requests
+			 WHERE guru_id = ? AND status IN ('menunggu','dijadwalkan')
+			   AND jadwal LIKE ?`
+		)
+		.all(guruId, `${date}%`) as { jadwal: string }[];
+
+	const bookedSession = d
+		.prepare(
+			`SELECT tanggal FROM counseling_sessions
+			 WHERE guru_id = ? AND tanggal LIKE ?`
+		)
+		.all(guruId, `${date}%`) as { tanggal: string }[];
+
+	const bookedTimes = new Set<string>();
+	for (const r of bookedReq) bookedTimes.add(r.jadwal.slice(0, 16));
+	for (const s of bookedSession) bookedTimes.add(s.tanggal.slice(0, 16));
+
+	for (const slot of slots) {
+		if (bookedTimes.has(slot.time.slice(0, 16))) {
+			slot.available = false;
+			slot.reason = 'Sudah terjadwal';
+		}
+	}
+
+	return slots;
+}
+
 export function listSessionsForSiswa(siswaId: number): SessionRow[] {
 	return db()
 		.prepare(

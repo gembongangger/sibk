@@ -1,5 +1,14 @@
 import { fail } from '@sveltejs/kit';
-import { db, listAllRequests, listGuruBK, listRequestsForSiswa, updateRequestStatus, type StudentRequestRow } from '$lib/server/db';
+import {
+	db,
+	checkGuruAvailability,
+	listAllRequests,
+	listGuruBK,
+	listRequestsForSiswa,
+	suggestAvailableSlots,
+	updateRequestStatus,
+	type StudentRequestRow
+} from '$lib/server/db';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals }) => {
@@ -39,6 +48,20 @@ export const actions: Actions = {
 			});
 		}
 
+		if (jadwal) {
+			const check = checkGuruAvailability(guruId, jadwal);
+			if (!check.available) {
+				const dateOnly = jadwal.slice(0, 10);
+				const availableSlots = suggestAvailableSlots(guruId, dateOnly).filter((s) => s.available);
+				return fail(400, {
+					error: `Guru BK sudah tidak tersedia pada waktu tersebut. ${check.conflictDetail ?? ''}`,
+					slotsConflict: true,
+					availableSlots,
+					form: { jenis, topik, deskripsi }
+				});
+			}
+		}
+
 		db()
 			.prepare(
 				`INSERT INTO counseling_requests (siswa_id, jenis, topik, deskripsi, jadwal, guru_id)
@@ -61,6 +84,19 @@ export const actions: Actions = {
 
 		if (!id || !['menunggu', 'dijadwalkan', 'selesai', 'ditolak'].includes(status)) {
 			return fail(400, { error: 'Data permohonan tidak valid.' });
+		}
+
+		if (status === 'dijadwalkan' && jadwal) {
+			const check = checkGuruAvailability(user.id, jadwal, id);
+			if (!check.available) {
+				const dateOnly = jadwal.slice(0, 10);
+				const availableSlots = suggestAvailableSlots(user.id, dateOnly).filter((s) => s.available);
+				return fail(400, {
+					error: `Waktu sudah terpakai. ${check.conflictDetail ?? ''}`,
+					slotsConflict: true,
+					availableSlots
+				});
+			}
 		}
 
 		updateRequestStatus(id, status, jadwal, user.id);
