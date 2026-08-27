@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import {
 	db,
 	checkGuruAvailability,
+	normalizeJadwal,
 	listAllRequests,
 	listGuruBK,
 	listRequestsForSiswa,
@@ -67,7 +68,7 @@ export const actions: Actions = {
 				`INSERT INTO counseling_requests (siswa_id, jenis, topik, deskripsi, jadwal, guru_id)
 				 VALUES (?, ?, ?, ?, ?, ?)`
 			)
-			.run(user.id, jenis, topik, deskripsi, jadwal || null, guruId);
+			.run(user.id, jenis, topik, deskripsi, jadwal ? normalizeJadwal(jadwal) : null, guruId);
 
 		return { success: 'Permohonan konseling berhasil dikirim.' };
 	},

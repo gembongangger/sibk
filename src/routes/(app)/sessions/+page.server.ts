@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { db, listOpenRequests, listSessions } from '$lib/server/db';
+import { db, normalizeJadwal, listOpenRequests, listSessions } from '$lib/server/db';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals }) => {
@@ -37,7 +37,7 @@ export const actions: Actions = {
 					`INSERT INTO counseling_sessions (request_id, siswa_id, guru_id, tanggal, tempat, catatan, tindak_lanjut)
 					 VALUES (?, ?, ?, ?, ?, ?, ?)`
 				)
-				.run(requestId, siswaId, user.id, tanggal, tempat, catatan, tindakLanjut || null);
+				.run(requestId, siswaId, user.id, normalizeJadwal(tanggal), tempat, catatan, tindakLanjut || null);
 			db()
 				.prepare(`UPDATE counseling_requests SET status = 'selesai' WHERE id = ?`)
 				.run(requestId);

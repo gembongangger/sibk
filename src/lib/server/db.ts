@@ -196,18 +196,19 @@ export function recentRequests(limit = 5): RequestRow[] {
 
 export function updateRequestStatus(id: number, status: string, jadwal: string, guruId: number): void {
 	const d = db();
+	const j = normalizeJadwal(jadwal);
 	d.transaction(() => {
 		const req = d.prepare('SELECT * FROM counseling_requests WHERE id = ?').get(id) as
 			| { siswa_id: number }
 			| undefined;
 		d.prepare(
 			`UPDATE counseling_requests SET status = ?, jadwal = ?, guru_id = ? WHERE id = ?`
-		).run(status, jadwal || null, guruId, id);
+		).run(status, j || null, guruId, id);
 		if (status === 'selesai' && req) {
 			const adaSesi = d.prepare('SELECT id FROM counseling_sessions WHERE request_id = ? LIMIT 1').get(id);
 			if (!adaSesi) {
 				const tanggal =
-					jadwal || (d.prepare("SELECT datetime('now','localtime') AS t").get() as { t: string }).t;
+					j || (d.prepare("SELECT datetime('now','localtime') AS t").get() as { t: string }).t;
 				d.prepare(
 					`INSERT INTO counseling_sessions (request_id, siswa_id, guru_id, tanggal, tempat, catatan, tindak_lanjut)
 					 VALUES (?, ?, ?, ?, ?, ?, ?)`
@@ -280,24 +281,36 @@ export function listGuruBK(): { id: number; nama: string }[] {
 		.all() as { id: number; nama: string }[];
 }
 
+export function normalizeJadwal(jadwal: string): string {
+	if (!jadwal) return jadwal;
+	if (jadwal.includes('T')) {
+		return jadwal.replace('T', ' ') + (jadwal.length <= 16 ? ':00' : '');
+	}
+	if (jadwal.length <= 16 && !jadwal.endsWith(':00')) {
+		return jadwal + ':00';
+	}
+	return jadwal;
+}
+
 export function checkGuruAvailability(
 	guruId: number,
 	jadwal: string,
 	excludeRequestId?: number
 ): { available: boolean; conflictSource?: 'request' | 'session'; conflictDetail?: string } {
 	const d = db();
+	const j = normalizeJadwal(jadwal);
 
 	const conflictReq = d
 		.prepare(
 			`SELECT r.id, r.status, s.nama AS nama_siswa
 			 FROM counseling_requests r
 			 JOIN users s ON s.id = r.siswa_id
-			 WHERE r.guru_id = ? AND r.jadwal = ?
+			 WHERE r.guru_id = ? AND (r.jadwal = ? OR r.jadwal = ?)
 			   AND r.status IN ('menunggu','dijadwalkan')
 			   AND r.id != ?
 			 LIMIT 1`
 		)
-		.get(guruId, jadwal, excludeRequestId ?? 0) as
+		.get(guruId, j, j.replace(':00', ''), excludeRequestId ?? 0) as
 		| { id: number; status: string; nama_siswa: string }
 		| undefined;
 
@@ -314,10 +327,10 @@ export function checkGuruAvailability(
 			`SELECT cs.id, s.nama AS nama_siswa
 			 FROM counseling_sessions cs
 			 JOIN users s ON s.id = cs.siswa_id
-			 WHERE cs.guru_id = ? AND cs.tanggal = ?
+			 WHERE cs.guru_id = ? AND (cs.tanggal = ? OR cs.tanggal = ?)
 			 LIMIT 1`
 		)
-		.get(guruId, jadwal) as { id: number; nama_siswa: string } | undefined;
+		.get(guruId, j, j.replace(':00', '')) as { id: number; nama_siswa: string } | undefined;
 
 	if (conflictSession) {
 		return {
@@ -366,11 +379,21 @@ export function suggestAvailableSlots(
 		.all(guruId, `${date}%`) as { tanggal: string }[];
 
 	const bookedTimes = new Set<string>();
-	for (const r of bookedReq) bookedTimes.add(r.jadwal.slice(0, 16));
-	for (const s of bookedSession) bookedTimes.add(s.tanggal.slice(0, 16));
+	for (const r of bookedReq) {
+		const n = normalizeJadwal(r.jadwal);
+		bookedTimes.add(n.slice(0, 16));
+		bookedTimes.add(n.replace(':00', '').slice(0, 16));
+	}
+	for (const s of bookedSession) {
+		const n = normalizeJadwal(s.tanggal);
+		bookedTimes.add(n.slice(0, 16));
+		bookedTimes.add(n.replace(':00', '').slice(0, 16));
+	}
 
 	for (const slot of slots) {
-		if (bookedTimes.has(slot.time.slice(0, 16))) {
+		const slotNorm = slot.time.slice(0, 16);
+		const slotNoSec = slotNorm;
+		if (bookedTimes.has(slotNorm) || bookedTimes.has(slotNoSec)) {
 			slot.available = false;
 			slot.reason = 'Sudah terjadwal';
 		}
