@@ -15,9 +15,10 @@ import type { Actions, PageServerLoad } from './$types';
 export const load: PageServerLoad = ({ locals }) => {
 	const user = locals.user!;
 	const isGuru = user.role === 'guru' || user.role === 'admin';
+	const guruId = user.role === 'guru' ? user.id : undefined;
 	return {
 		isGuru,
-		requests: (isGuru ? listAllRequests() : listRequestsForSiswa(user.id)) as StudentRequestRow[],
+		requests: (isGuru ? listAllRequests(guruId) : listRequestsForSiswa(user.id)) as StudentRequestRow[],
 		guruList: listGuruBK()
 	};
 };

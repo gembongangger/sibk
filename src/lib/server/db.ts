@@ -281,8 +281,21 @@ export function listRequestsForSiswa(siswaId: number): StudentRequestRow[] {
 		.all(siswaId) as StudentRequestRow[];
 }
 
-export function listAllRequests(): RequestRow[] {
-	return db()
+export function listAllRequests(guruId?: number): RequestRow[] {
+	const d = db();
+	if (guruId) {
+		return d
+			.prepare(
+				`SELECT r.*, s.nama AS nama_siswa, s.kelas AS kelas_siswa, g.nama AS nama_guru
+				 FROM counseling_requests r
+				 JOIN users s ON s.id = r.siswa_id
+				 LEFT JOIN users g ON g.id = r.guru_id
+				 WHERE r.guru_id = ?
+				 ORDER BY r.created_at DESC`
+			)
+			.all(guruId) as RequestRow[];
+	}
+	return d
 		.prepare(
 			`SELECT r.*, s.nama AS nama_siswa, s.kelas AS kelas_siswa, g.nama AS nama_guru
 			 FROM counseling_requests r
