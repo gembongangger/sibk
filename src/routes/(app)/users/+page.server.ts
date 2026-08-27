@@ -5,6 +5,7 @@ import {
 	getAngkatanAktif,
 	getUserById,
 	listAngkatanOptions,
+	listKelasOptions,
 	listUsers,
 	parseAngkatan,
 	setAngkatanAktif
@@ -46,7 +47,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		angkatanOptions: listAngkatanOptions(),
 		angkatanAktif: aktif.years,
 		angkatanDikonfigurasi: aktif.configured,
-		editUser: editId > 0 ? getUserById(editId) : null
+		editUser: editId > 0 ? getUserById(editId) : null,
+		classNames: listKelasOptions()
 	};
 };
 

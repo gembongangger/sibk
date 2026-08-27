@@ -371,7 +371,16 @@
 			</div>
 			<div>
 				<label for="kelas" class="block mb-1 text-slate-600">Kelas</label>
-				<input id="kelas" type="text" name="kelas" bind:value={form.kelas} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" placeholder="contoh: X IPA 1" />
+				{#if data.classNames.length > 0}
+					<select id="kelas" name="kelas" bind:value={form.kelas} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+						<option value="">Pilih kelas</option>
+						{#each data.classNames as k}
+							<option value={k}>{k}</option>
+						{/each}
+					</select>
+				{:else}
+					<input id="kelas" type="text" name="kelas" bind:value={form.kelas} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" placeholder="Atur daftar kelas di Pengaturan" />
+				{/if}
 			</div>
 			<div>
 				<label for="angkatan" class="block mb-1 text-slate-600">Tahun Angkatan</label>

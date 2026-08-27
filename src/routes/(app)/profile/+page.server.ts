@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { db, getUserById, listSessionsForSiswa } from '$lib/server/db';
+import { db, getUserById, listKelasOptions, listSessionsForSiswa } from '$lib/server/db';
 import { hashPassword } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -8,7 +8,8 @@ export const load: PageServerLoad = ({ locals }) => {
 	const current = getUserById(user.id) ?? user;
 	return {
 		user: current,
-		riwayat: current.role === 'siswa' ? listSessionsForSiswa(current.id) : []
+		riwayat: current.role === 'siswa' ? listSessionsForSiswa(current.id) : [],
+		classNames: listKelasOptions()
 	};
 };
 

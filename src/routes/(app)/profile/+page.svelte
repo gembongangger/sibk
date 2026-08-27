@@ -99,7 +99,16 @@
 			</div>
 			<div>
 				<label for="kelas" class="block mb-1 text-slate-600">Kelas</label>
-				<input id="kelas" type="text" name="kelas" value={data.user.kelas ?? ''} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" />
+				{#if data.classNames.length > 0}
+					<select id="kelas" name="kelas" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+						<option value="">Pilih kelas</option>
+						{#each data.classNames as k}
+							<option value={k} selected={k === (data.user.kelas ?? '')}>{k}</option>
+						{/each}
+					</select>
+				{:else}
+					<input id="kelas" type="text" name="kelas" value={data.user.kelas ?? ''} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" />
+				{/if}
 			</div>
 		</div>
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

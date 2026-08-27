@@ -2,14 +2,16 @@
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
 	import Alert from '$lib/components/Alert.svelte';
-	import { Clock } from '@lucide/svelte';
+	import { Clock, BookOpen } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	let duration = $state('30');
+	let classNamesText = $state('');
 
 	$effect(() => {
 		duration = String(data.duration);
+		classNamesText = data.classNames.join('\n');
 	});
 </script>
 
@@ -37,7 +39,7 @@
 			</div>
 		</div>
 
-		<form method="POST" action="?/simpan" class="space-y-3">
+		<form method="POST" action="?/simpanDurasi" class="space-y-3">
 			<div>
 				<label for="duration" class="block mb-1 text-xs text-slate-600">Durasi per sesi (menit)</label>
 				<select
@@ -70,6 +72,36 @@
 
 			<button type="submit" class="btn btn-primary">
 				Simpan Pengaturan
+			</button>
+		</form>
+	</div>
+
+	<div class="card mt-6">
+		<div class="flex items-center gap-2 mb-4">
+			<div class="h-9 w-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+				<BookOpen size={18} strokeWidth={2} />
+			</div>
+			<div>
+				<h2 class="text-sm font-semibold text-slate-900">Daftar Nama Kelas</h2>
+				<p class="text-[11px] text-slate-400">Satu kelas per baris. Digunakan di form pengguna dan filter laporan.</p>
+			</div>
+		</div>
+
+		<form method="POST" action="?/simpanKelas" class="space-y-3">
+			<div>
+				<label for="classNames" class="block mb-1 text-xs text-slate-600">Nama kelas (satu per baris)</label>
+				<textarea
+					id="classNames"
+					name="classNames"
+					rows="8"
+					bind:value={classNamesText}
+					class="input font-mono text-xs"
+					placeholder={"X IPA 1\nX IPA 2\nX IPS 1\nXI IPA 1\nXI IPA 2\nXI IPS 1"}
+				></textarea>
+			</div>
+
+			<button type="submit" class="btn btn-primary">
+				Simpan Daftar Kelas
 			</button>
 		</form>
 	</div>

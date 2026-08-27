@@ -500,6 +500,13 @@ function reportWhere(awal: string, akhir: string, filter: ReportFilter) {
 }
 
 export function listKelasOptions(): string[] {
+	const stored = getSetting('class_names');
+	if (stored) {
+		try {
+			const parsed = JSON.parse(stored);
+			if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[];
+		} catch { /* fallback */ }
+	}
 	return (
 		db()
 			.prepare(
