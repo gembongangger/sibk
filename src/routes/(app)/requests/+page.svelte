@@ -5,6 +5,7 @@
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	import Stars from '$lib/components/Stars.svelte';
 	import { formatDate, formatDateTime, formatTime, toDateTimeLocal } from '$lib/utils';
+	import { CalendarDays } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -13,6 +14,32 @@
 	let deskripsi = $state('');
 	let jadwal = $state('');
 	let guruId = $state('');
+	let pickDate = $state('');
+	let slots = $state<{ time: string; available: boolean; reason?: string }[]>([]);
+	let loadingSlots = $state(false);
+
+	async function fetchSlots() {
+		if (!guruId || !pickDate) {
+			slots = [];
+			return;
+		}
+		loadingSlots = true;
+		try {
+			const res = await fetch(`/api/slots?guruId=${guruId}&date=${pickDate}`);
+			const json = await res.json();
+			slots = json.slots ?? [];
+		} catch {
+			slots = [];
+		} finally {
+			loadingSlots = false;
+		}
+	}
+
+	function pickSlot(time: string) {
+		jadwal = time;
+		const form = document.getElementById('form-ajukan') as HTMLFormElement;
+		form?.requestSubmit();
+	}
 </script>
 
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -86,17 +113,50 @@
 					<textarea id="deskripsi" name="deskripsi" rows="4" bind:value={deskripsi} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"></textarea>
 				</div>
 				<div>
-					<label for="jadwal" class="block mb-1 text-slate-600">Jadwal yang Diinginkan <span class="text-slate-400">(opsional)</span></label>
+					<label for="jadwal-date" class="block mb-1 text-slate-600">Tanggal Konseling <span class="text-slate-400">(opsional)</span></label>
 					<input
-						id="jadwal"
-						type="datetime-local"
-						name="jadwal"
-						bind:value={jadwal}
-						min={new Date().toISOString().slice(0, 16)}
-						class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs"
+						id="jadwal-date"
+						type="date"
+						bind:value={pickDate}
+						onchange={fetchSlots}
+						min={new Date().toISOString().slice(0, 10)}
+						disabled={!guruId}
+						class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs disabled:opacity-50"
 					/>
-					<p class="text-[11px] text-slate-400 mt-1">Jika dikosongkan, guru BK akan menentukan jadwal sendiri.</p>
 				</div>
+
+				{#if pickDate && guruId}
+					<div>
+						<span class="block mb-1 text-slate-600 text-xs">Pilih Waktu</span>
+						{#if loadingSlots}
+							<div class="flex items-center gap-2 text-xs text-slate-400 py-2">
+								<span class="h-4 w-4 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></span>
+								Memuat jadwal tersedia...
+							</div>
+						{:else if slots.length === 0}
+							<p class="text-xs text-slate-400 py-2">Tidak ada slot waktu tersedia untuk tanggal ini.</p>
+						{:else}
+							<div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+								{#each slots as slot}
+									<button
+										type="button"
+										onclick={() => slot.available && pickSlot(slot.time)}
+										disabled={!slot.available}
+										class="inline-flex items-center justify-center rounded-lg px-2 py-2 text-xs font-medium transition {slot.available
+											? 'border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 cursor-pointer'
+											: 'border border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed line-through'}"
+										title={slot.available ? `Pilih ${slot.time.slice(11, 16)}` : slot.reason}
+									>
+										{slot.time.slice(11, 16)}
+									</button>
+								{/each}
+							</div>
+							<p class="text-[11px] text-slate-400 mt-1.5">Klik waktu yang tersedia untuk langsung mengirim permohonan.</p>
+						{/if}
+					</div>
+				{/if}
+
+				<input type="hidden" name="jadwal" value={jadwal} />
 				<button type="submit" class="mt-2 w-full btn btn-primary">
 					Kirim Permohonan
 				</button>

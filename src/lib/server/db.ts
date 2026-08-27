@@ -332,22 +332,22 @@ export function checkGuruAvailability(
 
 export function suggestAvailableSlots(
 	guruId: number,
-	date: string
+	date: string,
+	durationMinutes?: number
 ): { time: string; available: boolean; reason?: string }[] {
 	const d = db();
+	const dur = durationMinutes ?? Number(getSetting('session_duration_minutes') ?? '30');
 	const slots: { time: string; available: boolean; reason?: string }[] = [];
 
-	for (let h = 7; h <= 14; h++) {
-		for (const m of [0, 30]) {
-			if (h === 7 && m === 0) continue;
-			if (h === 15 && m > 0) break;
-			const hh = String(h).padStart(2, '0');
-			const mm = String(m).padStart(2, '0');
-			slots.push({ time: `${date} ${hh}:${mm}:00`, available: true });
-		}
-	}
-	if (slots.length === 0 || slots[slots.length - 1].time !== `${date} 14:30:00`) {
-		slots.push({ time: `${date} 14:30:00`, available: true });
+	const startMin = 7 * 60 + 30;
+	const endMin = 15 * 60;
+
+	for (let mins = startMin; mins + dur <= endMin; mins += dur) {
+		const h = Math.floor(mins / 60);
+		const m = mins % 60;
+		const hh = String(h).padStart(2, '0');
+		const mm = String(m).padStart(2, '0');
+		slots.push({ time: `${date} ${hh}:${mm}:00`, available: true });
 	}
 
 	const bookedReq = d

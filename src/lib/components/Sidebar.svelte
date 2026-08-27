@@ -6,6 +6,7 @@
 		CalendarDays,
 		BarChart3,
 		Users,
+		Settings,
 		UserCircle,
 		LogOut,
 		Menu,
@@ -23,7 +24,8 @@
 		{ href: '/requests', label: 'Permohonan', icon: ClipboardList, roles: ['admin', 'guru'] },
 		{ href: '/sessions', label: 'Sesi', icon: CalendarDays, roles: ['admin', 'guru'] },
 		{ href: '/reports', label: 'Laporan', icon: BarChart3, roles: ['admin', 'guru'] },
-		{ href: '/users', label: 'Pengguna', icon: Users, roles: ['admin'] }
+		{ href: '/users', label: 'Pengguna', icon: Users, roles: ['admin'] },
+		{ href: '/settings', label: 'Pengaturan', icon: Settings, roles: ['admin'] }
 	];
 
 	const role = $derived($page.data.user?.role ?? 'siswa');
