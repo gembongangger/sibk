@@ -49,18 +49,23 @@ export const actions: Actions = {
 			});
 		}
 
-		if (jadwal) {
-			const check = checkGuruAvailability(guruId, jadwal);
-			if (!check.available) {
-				const dateOnly = jadwal.slice(0, 10);
-				const availableSlots = suggestAvailableSlots(guruId, dateOnly).filter((s) => s.available);
-				return fail(400, {
-					error: `Guru BK sudah tidak tersedia pada waktu tersebut. ${check.conflictDetail ?? ''}`,
-					slotsConflict: true,
-					availableSlots,
-					form: { jenis, topik, deskripsi }
-				});
-			}
+		if (!jadwal) {
+			return fail(400, {
+				error: 'Pilih tanggal dan waktu konseling terlebih dahulu.',
+				form: { jenis, topik, deskripsi }
+			});
+		}
+
+		const check = checkGuruAvailability(guruId, jadwal);
+		if (!check.available) {
+			const dateOnly = jadwal.slice(0, 10);
+			const availableSlots = suggestAvailableSlots(guruId, dateOnly).filter((s) => s.available);
+			return fail(400, {
+				error: `Guru BK sudah tidak tersedia pada waktu tersebut. ${check.conflictDetail ?? ''}`,
+				slotsConflict: true,
+				availableSlots,
+				form: { jenis, topik, deskripsi }
+			});
 		}
 
 		db()
