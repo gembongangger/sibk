@@ -24,28 +24,30 @@
 </section>
 
 <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-	<div class="card">
-		<div class="flex items-center justify-between">
-			<div>
-				<div class="text-xs font-medium text-slate-400">Total Siswa Terdaftar</div>
-				<div class="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{data.totalSiswa}</div>
-			</div>
-			<div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-				<Users size={19} strokeWidth={2} />
-			</div>
-		</div>
-	</div>
-	<div class="card">
-		<div class="flex items-center justify-between">
-			<div>
-				<div class="text-xs font-medium text-slate-400">Guru BK Aktif</div>
-				<div class="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{data.totalGuru}</div>
-			</div>
-			<div class="h-10 w-10 rounded-xl bg-lime-50 text-lime-600 flex items-center justify-center">
-				<GraduationCap size={19} strokeWidth={2} />
+	{#if data.user.role === 'admin'}
+		<div class="card">
+			<div class="flex items-center justify-between">
+				<div>
+					<div class="text-xs font-medium text-slate-400">Total Siswa Terdaftar</div>
+					<div class="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{data.totalSiswa}</div>
+				</div>
+				<div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+					<Users size={19} strokeWidth={2} />
+				</div>
 			</div>
 		</div>
-	</div>
+		<div class="card">
+			<div class="flex items-center justify-between">
+				<div>
+					<div class="text-xs font-medium text-slate-400">Guru BK Aktif</div>
+					<div class="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{data.totalGuru}</div>
+				</div>
+				<div class="h-10 w-10 rounded-xl bg-lime-50 text-lime-600 flex items-center justify-center">
+					<GraduationCap size={19} strokeWidth={2} />
+				</div>
+			</div>
+		</div>
+	{/if}
 	<div class="card">
 		<div class="flex items-center justify-between">
 			<div>

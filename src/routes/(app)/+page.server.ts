@@ -14,12 +14,13 @@ const STATUSES = ['menunggu', 'dijadwalkan', 'selesai', 'ditolak'];
 export const load: PageServerLoad = ({ locals }) => {
 	const user = locals.user!;
 	const isStaff = user.role === 'admin' || user.role === 'guru';
+	const guruId = user.role === 'guru' ? user.id : undefined;
 	return {
-		totalSiswa: countByRole('siswa'),
-		totalGuru: countByRole('guru'),
-		totalPending: countPendingRequests(),
-		totalUpcoming: countUpcomingSessions(),
-		recentRequests: isStaff ? recentRequests(5) : [],
+		totalSiswa: user.role === 'admin' ? countByRole('siswa') : 0,
+		totalGuru: user.role === 'admin' ? countByRole('guru') : 0,
+		totalPending: countPendingRequests(guruId),
+		totalUpcoming: countUpcomingSessions(guruId),
+		recentRequests: isStaff ? recentRequests(5, guruId) : [],
 		pendingFeedback: user.role === 'siswa' ? pendingFeedbackForSiswa(user.id) : []
 	};
 };

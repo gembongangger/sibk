@@ -165,15 +165,32 @@ export function countByRole(role: Role): number {
 	return row.total;
 }
 
-export function countPendingRequests(): number {
-	const row = db()
+export function countPendingRequests(guruId?: number): number {
+	const d = db();
+	if (guruId) {
+		const row = d
+			.prepare(`SELECT COUNT(*) AS total FROM counseling_requests WHERE status = 'menunggu' AND guru_id = ?`)
+			.get(guruId) as { total: number };
+		return row.total;
+	}
+	const row = d
 		.prepare(`SELECT COUNT(*) AS total FROM counseling_requests WHERE status = 'menunggu'`)
 		.get() as { total: number };
 	return row.total;
 }
 
-export function countUpcomingSessions(): number {
-	const row = db()
+export function countUpcomingSessions(guruId?: number): number {
+	const d = db();
+	if (guruId) {
+		const row = d
+			.prepare(
+				`SELECT COUNT(*) AS total FROM counseling_requests
+				 WHERE status = 'dijadwalkan' AND guru_id = ? AND jadwal >= datetime('now', 'localtime')`
+			)
+			.get(guruId) as { total: number };
+		return row.total;
+	}
+	const row = d
 		.prepare(
 			`SELECT COUNT(*) AS total FROM counseling_requests
 			 WHERE status = 'dijadwalkan' AND jadwal >= datetime('now', 'localtime')`
@@ -182,8 +199,21 @@ export function countUpcomingSessions(): number {
 	return row.total;
 }
 
-export function recentRequests(limit = 5): RequestRow[] {
-	return db()
+export function recentRequests(limit = 5, guruId?: number): RequestRow[] {
+	const d = db();
+	if (guruId) {
+		return d
+			.prepare(
+				`SELECT r.*, u.nama AS nama_siswa
+				 FROM counseling_requests r
+				 JOIN users u ON u.id = r.siswa_id
+				 WHERE r.guru_id = ?
+				 ORDER BY r.created_at DESC
+				 LIMIT ?`
+			)
+			.all(guruId, limit) as RequestRow[];
+	}
+	return d
 		.prepare(
 			`SELECT r.*, u.nama AS nama_siswa
 			 FROM counseling_requests r
