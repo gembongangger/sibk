@@ -7,11 +7,15 @@
 	let { data }: { data: PageData } = $props();
 
 	let duration = $state('30');
-	let classNamesText = $state('');
+	let tingkatText = $state('');
+	let programText = $state('');
+	let nomorText = $state('');
 
 	$effect(() => {
 		duration = String(data.duration);
-		classNamesText = data.classNames.join('\n');
+		tingkatText = data.tingkatOptions.join('\n');
+		programText = data.programOptions.join('\n');
+		nomorText = data.nomorOptions.join('\n');
 	});
 </script>
 
@@ -27,7 +31,7 @@
 	<Alert type="success">{$page.form.success}</Alert>
 {/if}
 
-<div class="max-w-lg">
+<div class="max-w-2xl">
 	<div class="card">
 		<div class="flex items-center gap-2 mb-4">
 			<div class="h-9 w-9 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
@@ -82,22 +86,62 @@
 				<BookOpen size={18} strokeWidth={2} />
 			</div>
 			<div>
-				<h2 class="text-sm font-semibold text-slate-900">Daftar Nama Kelas</h2>
-				<p class="text-[11px] text-slate-400">Satu kelas per baris. Digunakan di form pengguna dan filter laporan.</p>
+				<h2 class="text-sm font-semibold text-slate-900">Opsi Nama Kelas</h2>
+				<p class="text-[11px] text-slate-400">
+					Nama kelas tersusun dari 3 bagian: tingkat + program + nomor (mis. X IPA 1).
+					Satu opsi per baris di masing-masing kolom.
+				</p>
 			</div>
 		</div>
 
 		<form method="POST" action="?/simpanKelas" class="space-y-3">
-			<div>
-				<label for="classNames" class="block mb-1 text-xs text-slate-600">Nama kelas (satu per baris)</label>
-				<textarea
-					id="classNames"
-					name="classNames"
-					rows="8"
-					bind:value={classNamesText}
-					class="input font-mono text-xs"
-					placeholder={"X IPA 1\nX IPA 2\nX IPS 1\nXI IPA 1\nXI IPA 2\nXI IPS 1"}
-				></textarea>
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+				<div>
+					<label for="tingkatOptions" class="block mb-1 text-xs text-slate-600">Tingkat Kelas</label>
+					<textarea
+						id="tingkatOptions"
+						name="tingkatOptions"
+						rows="6"
+						bind:value={tingkatText}
+						class="input font-mono text-xs"
+						placeholder={"X\nXI\nXII"}
+					></textarea>
+				</div>
+				<div>
+					<label for="programOptions" class="block mb-1 text-xs text-slate-600">Program Kelas</label>
+					<textarea
+						id="programOptions"
+						name="programOptions"
+						rows="6"
+						bind:value={programText}
+						class="input font-mono text-xs"
+						placeholder={"IPA\nIPS\nBahasa"}
+					></textarea>
+				</div>
+				<div>
+					<label for="nomorOptions" class="block mb-1 text-xs text-slate-600">Nomor Kelas</label>
+					<textarea
+						id="nomorOptions"
+						name="nomorOptions"
+						rows="6"
+						bind:value={nomorText}
+						class="input font-mono text-xs"
+						placeholder={"1\n2\n3"}
+					></textarea>
+				</div>
+			</div>
+
+			<div class="text-xs text-slate-500 bg-slate-50 rounded-lg p-3">
+				<p class="font-medium text-slate-700 mb-1">Kombinasi yang dihasilkan:</p>
+				<div class="flex flex-wrap gap-1.5">
+					{#each data.tingkatOptions as t}
+						{#each data.programOptions as p}
+							{#each data.nomorOptions as n}
+								<span class="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700">{t} {p} {n}</span>
+							{/each}
+						{/each}
+					{/each}
+				</div>
 			</div>
 
 			<button type="submit" class="btn btn-primary">

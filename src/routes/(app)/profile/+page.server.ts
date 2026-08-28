@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { db, getUserById, listKelasOptions, listSessionsForSiswa } from '$lib/server/db';
+import { db, getUserById, listKelasConfig, listSessionsForSiswa, buildKelasString } from '$lib/server/db';
 import { hashPassword } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -9,7 +9,7 @@ export const load: PageServerLoad = ({ locals }) => {
 	return {
 		user: current,
 		riwayat: current.role === 'siswa' ? listSessionsForSiswa(current.id) : [],
-		classNames: listKelasOptions()
+		kelasConfig: listKelasConfig()
 	};
 };
 
@@ -20,7 +20,10 @@ export const actions: Actions = {
 		const nama = String(form.get('nama') ?? '').trim();
 		const email = String(form.get('email') ?? '').trim();
 		const telepon = String(form.get('telepon') ?? '').trim();
-		const kelas = String(form.get('kelas') ?? '').trim();
+		const kelasTingkat = String(form.get('kelas_tingkat') ?? '').trim();
+		const kelasProgram = String(form.get('kelas_program') ?? '').trim();
+		const kelasNomor = String(form.get('kelas_nomor') ?? '').trim();
+		const kelas = buildKelasString(kelasTingkat, kelasProgram, kelasNomor);
 		const nis = String(form.get('nis') ?? '').trim();
 		const password = String(form.get('password') ?? '');
 
@@ -31,17 +34,17 @@ export const actions: Actions = {
 		if (password) {
 			db()
 				.prepare(
-					`UPDATE users SET nama = ?, email = ?, telepon = ?, kelas = ?, nis = ?, password = ?
+					`UPDATE users SET nama = ?, email = ?, telepon = ?, kelas = ?, kelas_tingkat = ?, kelas_program = ?, kelas_nomor = ?, nis = ?, password = ?
 					 WHERE id = ?`
 				)
-				.run(nama, email || null, telepon || null, kelas || null, nis || null, hashPassword(password), current.id);
+				.run(nama, email || null, telepon || null, kelas, kelasTingkat || null, kelasProgram || null, kelasNomor || null, nis || null, hashPassword(password), current.id);
 		} else {
 			db()
 				.prepare(
-					`UPDATE users SET nama = ?, email = ?, telepon = ?, kelas = ?, nis = ?
+					`UPDATE users SET nama = ?, email = ?, telepon = ?, kelas = ?, kelas_tingkat = ?, kelas_program = ?, kelas_nomor = ?, nis = ?
 					 WHERE id = ?`
 				)
-				.run(nama, email || null, telepon || null, kelas || null, nis || null, current.id);
+				.run(nama, email || null, telepon || null, kelas, kelasTingkat || null, kelasProgram || null, kelasNomor || null, nis || null, current.id);
 		}
 
 		return { success: 'Profil berhasil diperbarui.' };

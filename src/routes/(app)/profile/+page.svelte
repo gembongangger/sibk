@@ -8,6 +8,10 @@
 	let { data }: { data: PageData } = $props();
 
 	let showRiwayat = $state(false);
+
+	let kTingkat = $derived(data.user.kelas_tingkat ?? (data.user.kelas ?? '').trim().split(/\s+/)[0] ?? '');
+	let kProgram = $derived(data.user.kelas_program ?? (data.user.kelas ?? '').trim().split(/\s+/).slice(1, -1).join(' '));
+	let kNomor = $derived(data.user.kelas_nomor ?? (data.user.kelas ?? '').trim().split(/\s+/).slice(-1)[0] ?? '');
 </script>
 
 <div class="max-w-2xl">
@@ -97,18 +101,37 @@
 				<label for="nis" class="block mb-1 text-slate-600">NIS / NIP</label>
 				<input id="nis" type="text" name="nis" value={data.user.nis ?? ''} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" />
 			</div>
-			<div>
-				<label for="kelas" class="block mb-1 text-slate-600">Kelas</label>
-				{#if data.classNames.length > 0}
-					<select id="kelas" name="kelas" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
-						<option value="">Pilih kelas</option>
-						{#each data.classNames as k}
-							<option value={k} selected={k === (data.user.kelas ?? '')}>{k}</option>
-						{/each}
-					</select>
-				{:else}
-					<input id="kelas" type="text" name="kelas" value={data.user.kelas ?? ''} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" />
-				{/if}
+			<div class="sm:col-span-2">
+				<span class="block mb-1 text-slate-600">Kelas</span>
+				<div class="grid grid-cols-3 gap-2">
+					<div>
+						<label for="kelas_tingkat" class="block mb-0.5 text-[11px] text-slate-500">Tingkat</label>
+						<select id="kelas_tingkat" name="kelas_tingkat" bind:value={kTingkat} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+							<option value="">-</option>
+							{#each data.kelasConfig.tingkat as k}
+								<option value={k}>{k}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="kelas_program" class="block mb-0.5 text-[11px] text-slate-500">Program</label>
+						<select id="kelas_program" name="kelas_program" bind:value={kProgram} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+							<option value="">-</option>
+							{#each data.kelasConfig.program as k}
+								<option value={k}>{k}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="kelas_nomor" class="block mb-0.5 text-[11px] text-slate-500">Nomor</label>
+						<select id="kelas_nomor" name="kelas_nomor" bind:value={kNomor} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+							<option value="">-</option>
+							{#each data.kelasConfig.nomor as k}
+								<option value={k}>{k}</option>
+							{/each}
+						</select>
+					</div>
+				</div>
 			</div>
 		</div>
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

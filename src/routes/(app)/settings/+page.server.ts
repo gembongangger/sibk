@@ -1,23 +1,30 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { getSetting, setSetting } from '$lib/server/db';
+import {
+	getKelasTingkatOptions,
+	getKelasProgramOptions,
+	getKelasNomorOptions,
+	getSetting,
+	setSetting
+} from '$lib/server/db';
 import type { Actions, PageServerLoad } from './$types';
+
+function parseLines(raw: string): string[] {
+	return raw
+		.split('\n')
+		.map((s) => s.trim())
+		.filter((s) => s.length > 0);
+}
 
 export const load: PageServerLoad = ({ locals }) => {
 	const user = locals.user!;
 	if (user.role !== 'admin') {
 		redirect(302, '/');
 	}
-	const stored = getSetting('class_names');
-	let classNames: string[] = [];
-	if (stored) {
-		try {
-			const parsed = JSON.parse(stored);
-			if (Array.isArray(parsed)) classNames = parsed;
-		} catch { /* empty */ }
-	}
 	return {
 		duration: Number(getSetting('session_duration_minutes') ?? '30'),
-		classNames
+		tingkatOptions: getKelasTingkatOptions(),
+		programOptions: getKelasProgramOptions(),
+		nomorOptions: getKelasNomorOptions()
 	};
 };
 
@@ -44,18 +51,17 @@ export const actions: Actions = {
 			return fail(403, { error: 'Tidak diizinkan.' });
 		}
 		const form = await request.formData();
-		const raw = String(form.get('classNames') ?? '').trim();
+		const tingkat = parseLines(String(form.get('tingkatOptions') ?? ''));
+		const program = parseLines(String(form.get('programOptions') ?? ''));
+		const nomor = parseLines(String(form.get('nomorOptions') ?? ''));
 
-		const names = raw
-			.split('\n')
-			.map((s) => s.trim())
-			.filter((s) => s.length > 0);
-
-		if (names.length === 0) {
-			return fail(400, { error: 'Masukkan minimal satu nama kelas.' });
+		if (tingkat.length === 0 || program.length === 0 || nomor.length === 0) {
+			return fail(400, { error: 'Semua daftar (tingkat, program, nomor) minimal satu item.' });
 		}
 
-		setSetting('class_names', JSON.stringify(names));
-		return { success: 'Daftar kelas berhasil disimpan.' };
+		setSetting('kelas_tingkat_options', JSON.stringify(tingkat));
+		setSetting('kelas_program_options', JSON.stringify(program));
+		setSetting('kelas_nomor_options', JSON.stringify(nomor));
+		return { success: 'Daftar opsi kelas berhasil disimpan.' };
 	}
 };

@@ -14,10 +14,18 @@ export interface User {
 	role: Role;
 	nis: string | null;
 	kelas: string | null;
+	kelas_tingkat: string | null;
+	kelas_program: string | null;
+	kelas_nomor: string | null;
 	angkatan: number | null;
 	email: string | null;
 	telepon: string | null;
 	created_at: string;
+}
+
+export function buildKelasString(tingkat: string, program: string, nomor: string): string | null {
+	if (!tingkat && !program && !nomor) return null;
+	return [tingkat, program, nomor].filter((s) => s && s.trim()).map((s) => s.trim()).join(' ');
 }
 
 export interface RequestRow {
@@ -146,6 +154,15 @@ function migrate(d: Database.Database): void {
 	const userCols = d.pragma('table_info(users)') as { name: string }[];
 	if (!userCols.some((c) => c.name === 'angkatan')) {
 		d.exec('ALTER TABLE users ADD COLUMN angkatan INTEGER');
+	}
+	if (!userCols.some((c) => c.name === 'kelas_tingkat')) {
+		d.exec('ALTER TABLE users ADD COLUMN kelas_tingkat TEXT');
+	}
+	if (!userCols.some((c) => c.name === 'kelas_program')) {
+		d.exec('ALTER TABLE users ADD COLUMN kelas_program TEXT');
+	}
+	if (!userCols.some((c) => c.name === 'kelas_nomor')) {
+		d.exec('ALTER TABLE users ADD COLUMN kelas_nomor TEXT');
 	}
 
 	d.exec(`
@@ -499,24 +516,75 @@ function reportWhere(awal: string, akhir: string, filter: ReportFilter) {
 	return { where: clauses.join('\n\t\t\t AND '), params };
 }
 
+function parseStringList(raw: string | null): string[] | null {
+	if (!raw) return null;
+	try {
+		const parsed = JSON.parse(raw);
+		if (Array.isArray(parsed)) {
+			const items = (parsed as unknown[]).map((x) => String(x).trim()).filter((s) => s.length > 0);
+			if (items.length > 0) return items;
+		}
+	} catch { /* fallback */ }
+	return null;
+}
+
+export function getKelasTingkatOptions(): string[] {
+	return parseStringList(getSetting('kelas_tingkat_options')) ?? ['X', 'XI', 'XII'];
+}
+
+export function getKelasProgramOptions(): string[] {
+	return parseStringList(getSetting('kelas_program_options')) ?? ['IPA', 'IPS', 'Bahasa'];
+}
+
+export function getKelasNomorOptions(): string[] {
+	return parseStringList(getSetting('kelas_nomor_options')) ?? ['1', '2', '3', '4', '5'];
+}
+
+export function listKelasConfig() {
+	return {
+		tingkat: getKelasTingkatOptions(),
+		program: getKelasProgramOptions(),
+		nomor: getKelasNomorOptions()
+	};
+}
+
 export function listKelasOptions(): string[] {
-	const stored = getSetting('class_names');
-	if (stored) {
-		try {
-			const parsed = JSON.parse(stored);
-			if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[];
-		} catch { /* fallback */ }
+	const { tingkat, program, nomor } = listKelasConfig();
+	if (tingkat.length > 0 && program.length > 0 && nomor.length > 0) {
+		const out: string[] = [];
+		for (const t of tingkat) {
+			for (const p of program) {
+				for (const n of nomor) {
+					const k = buildKelasString(t, p, n);
+					if (k) out.push(k);
+				}
+			}
+		}
+		return out;
 	}
-	return (
+
+	const existing = (
 		db()
 			.prepare(
 				`SELECT DISTINCT kelas FROM users
 				 WHERE role = 'siswa' AND kelas IS NOT NULL AND kelas != ''
 				 ORDER BY kelas`
 			)
-			.all()
-			.map((row) => (row as { kelas: string }).kelas)
-	);
+			.all() as { kelas: string }[]
+	).map((r) => r.kelas);
+
+	const oldStored = getSetting('class_names');
+	if (oldStored) {
+		try {
+			const parsed = JSON.parse(oldStored);
+			if (Array.isArray(parsed)) {
+				for (const c of parsed) {
+					if (!existing.includes(c)) existing.push(c);
+				}
+			}
+		} catch { /* fallback */ }
+	}
+	return existing;
 }
 
 export function listSessionsByPeriod(awal: string, akhir: string, filter: ReportFilter = {}): SessionRow[] {

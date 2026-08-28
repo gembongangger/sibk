@@ -13,14 +13,27 @@
 		importOpen = true;
 	}
 
+	function splitKelas(k: string | null): { tingkat: string; program: string; nomor: string } {
+		if (!k) return { tingkat: '', program: '', nomor: '' };
+		const parts = k.trim().split(/\s+/);
+		return {
+			tingkat: parts[0] ?? '',
+			program: parts.length > 2 ? parts.slice(1, -1).join(' ') : '',
+			nomor: parts[parts.length - 1] ?? ''
+		};
+	}
+
 	function emptyForm(u: PageData['editUser']) {
+		const pk = splitKelas(u?.kelas ?? null);
 		return {
 			id: u ? String(u.id) : '',
 			nama: u?.nama ?? '',
 			username: u?.username ?? '',
 			role: u?.role ?? 'siswa',
 			nis: u?.nis ?? '',
-			kelas: u?.kelas ?? '',
+			kelas_tingkat: u?.kelas_tingkat ?? pk.tingkat,
+			kelas_program: u?.kelas_program ?? pk.program,
+			kelas_nomor: u?.kelas_nomor ?? pk.nomor,
 			angkatan: u?.angkatan != null ? String(u.angkatan) : '',
 			email: u?.email ?? '',
 			telepon: u?.telepon ?? ''
@@ -369,18 +382,34 @@
 				<label for="nis" class="block mb-1 text-slate-600">NIS / NIP</label>
 				<input id="nis" type="text" name="nis" bind:value={form.nis} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" />
 			</div>
-			<div>
-				<label for="kelas" class="block mb-1 text-slate-600">Kelas</label>
-				{#if data.classNames.length > 0}
-					<select id="kelas" name="kelas" bind:value={form.kelas} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
-						<option value="">Pilih kelas</option>
-						{#each data.classNames as k}
+			<div class="grid grid-cols-3 gap-2">
+				<div>
+					<label for="kelas_tingkat" class="block mb-1 text-slate-600">Tingkat</label>
+					<select id="kelas_tingkat" name="kelas_tingkat" bind:value={form.kelas_tingkat} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+						<option value="">-</option>
+						{#each data.kelasConfig.tingkat as k}
 							<option value={k}>{k}</option>
 						{/each}
 					</select>
-				{:else}
-					<input id="kelas" type="text" name="kelas" bind:value={form.kelas} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs" placeholder="Atur daftar kelas di Pengaturan" />
-				{/if}
+				</div>
+				<div>
+					<label for="kelas_program" class="block mb-1 text-slate-600">Program</label>
+					<select id="kelas_program" name="kelas_program" bind:value={form.kelas_program} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+						<option value="">-</option>
+						{#each data.kelasConfig.program as k}
+							<option value={k}>{k}</option>
+						{/each}
+					</select>
+				</div>
+				<div>
+					<label for="kelas_nomor" class="block mb-1 text-slate-600">Nomor</label>
+					<select id="kelas_nomor" name="kelas_nomor" bind:value={form.kelas_nomor} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
+						<option value="">-</option>
+						{#each data.kelasConfig.nomor as k}
+							<option value={k}>{k}</option>
+						{/each}
+					</select>
+				</div>
 			</div>
 			<div>
 				<label for="angkatan" class="block mb-1 text-slate-600">Tahun Angkatan</label>

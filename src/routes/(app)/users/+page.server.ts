@@ -2,10 +2,11 @@ import ExcelJS from 'exceljs';
 import { fail, redirect } from '@sveltejs/kit';
 import {
 	db,
+	buildKelasString,
 	getAngkatanAktif,
 	getUserById,
 	listAngkatanOptions,
-	listKelasOptions,
+	listKelasConfig,
 	listUsers,
 	parseAngkatan,
 	setAngkatanAktif
@@ -48,7 +49,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		angkatanAktif: aktif.years,
 		angkatanDikonfigurasi: aktif.configured,
 		editUser: editId > 0 ? getUserById(editId) : null,
-		classNames: listKelasOptions()
+		kelasConfig: listKelasConfig()
 	};
 };
 
@@ -61,7 +62,10 @@ export const actions: Actions = {
 		const role = String(form.get('role') ?? 'siswa');
 		const password = String(form.get('password') ?? '');
 		const nis = String(form.get('nis') ?? '').trim();
-		const kelas = String(form.get('kelas') ?? '').trim();
+		const kelasTingkat = String(form.get('kelas_tingkat') ?? '').trim();
+		const kelasProgram = String(form.get('kelas_program') ?? '').trim();
+		const kelasNomor = String(form.get('kelas_nomor') ?? '').trim();
+		let kelas = buildKelasString(kelasTingkat, kelasProgram, kelasNomor);
 		const angkatan = parseAngkatan(String(form.get('angkatan') ?? '').trim());
 		const email = String(form.get('email') ?? '').trim();
 		const telepon = String(form.get('telepon') ?? '').trim();
@@ -70,22 +74,26 @@ export const actions: Actions = {
 			return fail(400, { error: 'Nama, username, dan peran wajib diisi.' });
 		}
 
+		if (!kelas && id > 0) {
+			kelas = getUserById(id)?.kelas ?? null;
+		}
+
 		try {
 			if (id > 0) {
 				if (password) {
 					db()
 						.prepare(
-							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, angkatan = ?, email = ?, telepon = ?, password = ?
+							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, kelas_tingkat = ?, kelas_program = ?, kelas_nomor = ?, angkatan = ?, email = ?, telepon = ?, password = ?
 							 WHERE id = ?`
 						)
-						.run(nama, username, role, nis || null, kelas || null, angkatan, email || null, telepon || null, hashPassword(password), id);
+						.run(nama, username, role, nis || null, kelas, kelasTingkat || null, kelasProgram || null, kelasNomor || null, angkatan, email || null, telepon || null, hashPassword(password), id);
 				} else {
 					db()
 						.prepare(
-							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, angkatan = ?, email = ?, telepon = ?
+							`UPDATE users SET nama = ?, username = ?, role = ?, nis = ?, kelas = ?, kelas_tingkat = ?, kelas_program = ?, kelas_nomor = ?, angkatan = ?, email = ?, telepon = ?
 							 WHERE id = ?`
 						)
-						.run(nama, username, role, nis || null, kelas || null, angkatan, email || null, telepon || null, id);
+						.run(nama, username, role, nis || null, kelas, kelasTingkat || null, kelasProgram || null, kelasNomor || null, angkatan, email || null, telepon || null, id);
 				}
 				return { success: 'Data pengguna berhasil diperbarui.' };
 			}
@@ -95,10 +103,10 @@ export const actions: Actions = {
 			}
 			db()
 				.prepare(
-					`INSERT INTO users (nama, username, role, nis, kelas, angkatan, email, telepon, password)
-					 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+					`INSERT INTO users (nama, username, role, nis, kelas, kelas_tingkat, kelas_program, kelas_nomor, angkatan, email, telepon, password)
+					 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 				)
-				.run(nama, username, role, nis || null, kelas || null, angkatan, email || null, telepon || null, hashPassword(password));
+				.run(nama, username, role, nis || null, kelas, kelasTingkat || null, kelasProgram || null, kelasNomor || null, angkatan, email || null, telepon || null, hashPassword(password));
 			return { success: 'Pengguna baru berhasil ditambahkan.' };
 		} catch {
 			return fail(500, { error: 'Terjadi kesalahan saat menyimpan data pengguna.' });
@@ -189,8 +197,8 @@ export const actions: Actions = {
 
 		const stmtCheck = db().prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
 		const stmtInsert = db().prepare(
-			`INSERT INTO users (nama, username, role, nis, kelas, angkatan, email, telepon, password)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			`INSERT INTO users (nama, username, role, nis, kelas, kelas_tingkat, kelas_program, kelas_nomor, angkatan, email, telepon, password)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 		);
 
 		let inserted = 0;
@@ -215,6 +223,17 @@ export const actions: Actions = {
 					skipped++;
 					continue;
 				}
+				let kelasTingkat = get('kelas_tingkat') || get('tingkat');
+				let kelasProgram = get('kelas_program') || get('program');
+				let kelasNomor = get('kelas_nomor') || get('nomor');
+				let kelas = buildKelasString(kelasTingkat, kelasProgram, kelasNomor);
+				if (!kelas) {
+					kelas = get('kelas') || null;
+					const parts = splitKelas(kelas);
+					kelasTingkat = parts.tingkat;
+					kelasProgram = parts.program;
+					kelasNomor = parts.nomor;
+				}
 				const password = get('password') || '123456';
 				try {
 					stmtInsert.run(
@@ -222,7 +241,10 @@ export const actions: Actions = {
 						username,
 						role,
 						get('nis') || null,
-						get('kelas') || null,
+						kelas,
+						kelasTingkat || null,
+						kelasProgram || null,
+						kelasNomor || null,
 						parseAngkatan(get('angkatan')),
 						get('email') || null,
 						get('telepon') || null,
@@ -246,6 +268,16 @@ export const actions: Actions = {
 		});
 	}
 };
+
+function splitKelas(kelas: string | null): { tingkat: string; program: string; nomor: string } {
+	if (!kelas) return { tingkat: '', program: '', nomor: '' };
+	const parts = kelas.trim().split(/\s+/);
+	return {
+		tingkat: parts[0] ?? '',
+		program: parts.length > 2 ? parts.slice(1, -1).join(' ') : '',
+		nomor: parts[parts.length - 1] ?? ''
+	};
+}
 
 async function parseXlsx(buffer: ArrayBuffer): Promise<string[][]> {
 	const wb = new ExcelJS.Workbook();
