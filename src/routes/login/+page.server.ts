@@ -56,13 +56,18 @@ export const actions: Actions = {
 		const result = await verifyMoodleLogin(config, username, password);
 
 		if (!result.ok) {
-			if (result.reason === 'invalid') {
-				return fail(400, { error: 'Username atau password Moodle salah.', errorTab: 'moodle' });
-			}
-			return fail(400, {
-				error: 'Tidak dapat menghubungi server Moodle. Periksa konfigurasi atau hubungi admin.',
-				errorTab: 'moodle'
-			});
+			const shortname = config.serviceShortname;
+			const msg: Record<typeof result.reason, string> = {
+				invalid: 'Username atau password Moodle salah.',
+				unreachable: 'Tidak dapat menghubungi server Moodle. Periksa koneksi/TLS atau hubungi admin.',
+				misconfigured: 'Pengaturan SSO belum lengkap. Cek URL & shortname di Pengaturan.',
+				wsdisabled: 'Web services di Moodle belum diaktifkan. Aktifkan di Site administration → Web services.',
+				service: `Service Moodle '${shortname}' belum ditemukan/dinonaktifkan. Cek External services + shortname di Pengaturan.`,
+				authcap:
+					'Akun belum diizinkan membuat token. Di Moodle beri kapabilitas webservice:createtoken ke peran user.',
+				protocol: 'Protokol REST di Moodle belum diaktifkan. Aktifkan di Web services → Protocols.'
+			};
+			return fail(400, { error: msg[result.reason], errorTab: 'moodle' });
 		}
 
 		const user = findOrCreateSiswaByUsername(result.username, result.fullname);
