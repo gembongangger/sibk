@@ -55,8 +55,6 @@
 			<p class="mt-4 text-sm text-primary-100 text-center leading-snug">
 				Belum punya akun? Siswa dapat
 				<a href="/register" class="font-semibold text-white underline underline-offset-2 hover:text-primary-50">mendaftar di sini</a>.
-				Akun awal admin: username <span class="font-semibold">admin</span>, password <span class="font-semibold">admin123</span>.
-				Password dapat diubah setelah login.
 			</p>
 		</div>
 		<p class="mt-4 text-xs text-primary-100 text-center">&copy; {new Date().getFullYear()} BK MAN 1 Jember</p>
