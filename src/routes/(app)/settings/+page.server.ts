@@ -4,8 +4,10 @@ import {
 	getKelasProgramOptions,
 	getKelasNomorOptions,
 	getJenisLayananOptions,
+	getMoodleConfig,
 	getSetting,
-	setSetting
+	setSetting,
+	setMoodleConfig
 } from '$lib/server/db';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -26,7 +28,8 @@ export const load: PageServerLoad = ({ locals }) => {
 		tingkatOptions: getKelasTingkatOptions(),
 		programOptions: getKelasProgramOptions(),
 		nomorOptions: getKelasNomorOptions(),
-		jenisLayanan: getJenisLayananOptions()
+		jenisLayanan: getJenisLayananOptions(),
+		moodle: getMoodleConfig()
 	};
 };
 
@@ -81,5 +84,31 @@ export const actions: Actions = {
 
 		setSetting('jenis_layanan_options', JSON.stringify(jenis));
 		return { success: 'Daftar jenis layanan berhasil disimpan.' };
+	},
+
+	simpanMoodle: async ({ locals, request }) => {
+		const user = locals.user!;
+		if (user.role !== 'admin') {
+			return fail(403, { error: 'Tidak diizinkan.' });
+		}
+		const form = await request.formData();
+		const baseUrl = String(form.get('moodleBaseUrl') ?? '').trim().replace(/\/+$/, '');
+		const shortname = String(form.get('moodleServiceShortname') ?? '').trim();
+		const enabled = form.get('moodleEnabled') === 'on';
+		const skipTls = form.get('moodleTlsSkip') === 'on';
+
+		let url: URL;
+		try {
+			url = new URL(baseUrl || 'https://invalid');
+			if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error();
+		} catch {
+			return fail(400, { error: 'URL Moodle tidak valid. Contoh: https://lms.man1jember.sch.id' });
+		}
+		if (!shortname) {
+			return fail(400, { error: 'Service shortname wajib diisi.' });
+		}
+
+		setMoodleConfig({ enabled, baseUrl: url.origin, serviceShortname: shortname, skipTlsVerify: skipTls });
+		return { success: 'Konfigurasi integrasi Moodle berhasil disimpan.' };
 	}
 };

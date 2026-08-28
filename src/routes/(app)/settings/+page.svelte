@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
 	import Alert from '$lib/components/Alert.svelte';
-	import { Clock, BookOpen, HeartHandshake } from '@lucide/svelte';
+	import { Clock, BookOpen, HeartHandshake, GraduationCap, ChevronDown } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -11,6 +11,11 @@
 	let programText = $state('');
 	let nomorText = $state('');
 	let jenisLayananText = $state('');
+	let moodleEnabled = $state(false);
+	let moodleBaseUrl = $state('');
+	let moodleShortname = $state('');
+	let moodleTlsSkip = $state(false);
+	let showMoodleGuide = $state(false);
 
 	$effect(() => {
 		duration = String(data.duration);
@@ -18,6 +23,10 @@
 		programText = data.programOptions.join('\n');
 		nomorText = data.nomorOptions.join('\n');
 		jenisLayananText = data.jenisLayanan.join('\n');
+		moodleEnabled = data.moodle.enabled;
+		moodleBaseUrl = data.moodle.baseUrl;
+		moodleShortname = data.moodle.serviceShortname;
+		moodleTlsSkip = data.moodle.skipTlsVerify;
 	});
 </script>
 
@@ -189,6 +198,83 @@
 
 			<button type="submit" class="btn btn-primary">
 				Simpan Jenis Layanan
+			</button>
+		</form>
+	</div>
+
+	<div class="card mt-6">
+		<div class="flex items-center gap-2 mb-4">
+			<div class="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+				<GraduationCap size={18} strokeWidth={2} />
+			</div>
+			<div>
+				<h2 class="text-sm font-semibold text-slate-900">Integrasi Moodle (SSO)</h2>
+				<p class="text-[11px] text-slate-400">
+					Aktifkan "Masuk dengan akun Moodle" di halaman login, dengan verifikasi kredensial ke LMS Moodle sekolah.
+				</p>
+			</div>
+		</div>
+
+		<form method="POST" action="?/simpanMoodle" class="space-y-3">
+			<label class="flex items-start gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 cursor-pointer">
+				<input type="checkbox" name="moodleEnabled" bind:checked={moodleEnabled} class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600" />
+				<span>
+					Aktifkan login SSO Moodle
+					<span class="block text-[11px] text-slate-400">Munculkan tab "Akun Moodle" di halaman login.</span>
+				</span>
+			</label>
+
+			<div>
+				<label for="moodleBaseUrl" class="block mb-1 text-xs text-slate-600">URL Moodle</label>
+				<input
+					id="moodleBaseUrl"
+					name="moodleBaseUrl"
+					type="text"
+					bind:value={moodleBaseUrl}
+					class="input"
+					placeholder="https://lms.man1jember.sch.id"
+				/>
+				<p class="mt-1 text-[11px] text-slate-400">Cukup alamat utama, tanpa /login/index.php.</p>
+			</div>
+
+			<div>
+				<label for="moodleServiceShortname" class="block mb-1 text-xs text-slate-600">Service Shortname</label>
+				<input
+					id="moodleServiceShortname"
+					name="moodleServiceShortname"
+					type="text"
+					bind:value={moodleShortname}
+					class="input font-mono text-xs"
+					placeholder="sibk_sso"
+				/>
+			</div>
+
+			<label class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 cursor-pointer">
+				<input type="checkbox" name="moodleTlsSkip" bind:checked={moodleTlsSkip} class="mt-0.5 h-4 w-4 rounded border-amber-300 text-amber-600" />
+				<span>
+					Abaikan verifikasi sertifikat TLS
+					<span class="block text-[11px] text-amber-600">
+						Hanya jika Moodle memakai sertifikat mandiri (self-signed). Jangan aktifkan di jaringan tidak tepercaya.
+					</span>
+				</span>
+			</label>
+
+			<button type="button" onclick={() => (showMoodleGuide = !showMoodleGuide)} class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:underline">
+				<ChevronDown size={14} class="transition transform {showMoodleGuide ? 'rotate-180' : ''}" />
+				Panduan konfigurasi di Moodle
+			</button>
+
+			{#if showMoodleGuide}
+				<ol class="list-decimal space-y-1.5 rounded-xl bg-slate-50 px-5 py-3 text-xs text-slate-600">
+					<li>Site administration → Plugins → Web services → General settings → aktifkan <b>Enable web services</b>.</li>
+					<li>Plugins → Web services → <b>External services</b> → buat service <b>SIBK SSO</b> (shortname <code class="font-mono">sibk_sso</code>), Enabled = Yes, lalu tambahkan <b>satu fungsi</b>: <code class="font-mono">core_webservice_get_site_info</code> (read-only).</li>
+					<li>Plugins → Web services → <b>Protocols</b> → aktifkan <b>REST protocol</b>.</li>
+					<li>Kasih kapabilitas <b><code class="font-mono">moodle/webservice:createtoken</code></b> untuk role Authenticated user (atau role Siswa &amp; Guru) agar <code class="font-mono">login/token.php</code> dapat membuat token per pengguna.</li>
+				</ol>
+			{/if}
+
+			<button type="submit" class="btn btn-primary">
+				Simpan Integrasi Moodle
 			</button>
 		</form>
 	</div>

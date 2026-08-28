@@ -373,10 +373,51 @@ export function createUser(input: CreateUserInput): number {
 			input.kelasProgram || null,
 			input.kelasNomor || null,
 			input.angkatan ?? null,
-			input.email || null,
-			input.telepon || null
+input.email || null,
+		input.telepon || null
 		);
 	return Number(result.lastInsertRowid);
+}
+
+export interface MoodleConfig {
+	enabled: boolean;
+	baseUrl: string;
+	serviceShortname: string;
+	skipTlsVerify: boolean;
+}
+
+export function getMoodleConfig(): MoodleConfig {
+	return {
+		enabled: getSetting('moodle_enabled') === '1',
+		baseUrl: (getSetting('moodle_base_url') ?? 'https://lms.man1jember.sch.id').trim().replace(/\/+$/, ''),
+		serviceShortname: (getSetting('moodle_service_shortname') ?? 'sibk_sso').trim(),
+		skipTlsVerify: getSetting('moodle_tls_skip') === '1'
+	};
+}
+
+export function setMoodleConfig(input: { enabled: boolean; baseUrl: string; serviceShortname: string; skipTlsVerify: boolean }): void {
+	setSetting('moodle_enabled', input.enabled ? '1' : '0');
+	setSetting('moodle_base_url', input.baseUrl);
+	setSetting('moodle_service_shortname', input.serviceShortname);
+	setSetting('moodle_tls_skip', input.skipTlsVerify ? '1' : '0');
+}
+
+/** Cari user berdasarkan username (case-insensitive) lalu pakai akun itu.
+ *  Bila belum ada, buat akun baru sebagai siswa dengan password acak
+ *  (tidak bisa login lewat form biasa) dan nama dari aplikasi eksternal. */
+export function findOrCreateSiswaByUsername(username: string, nama?: string | null): User {
+	const d = db();
+	const existing = d.prepare(`SELECT * FROM users WHERE LOWER(username) = LOWER(?) LIMIT 1`).get(username) as User | undefined;
+	if (existing) return existing;
+
+	const cleanName = (nama ?? '').trim() || username;
+	const result = createUser({
+		nama: cleanName,
+		username,
+		passwordHash: bcrypt.hashSync(Math.random().toString(36).slice(2) + Date.now().toString(36), 10),
+		role: 'siswa'
+	});
+	return d.prepare(`SELECT * FROM users WHERE id = ?`).get(result) as User;
 }
 
 export function normalizeJadwal(jadwal: string): string {

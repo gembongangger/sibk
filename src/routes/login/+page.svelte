@@ -1,9 +1,18 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { Eye, EyeOff, Lock, Loader2, User, CalendarCheck, HeartHandshake, ShieldCheck } from '@lucide/svelte';
+	import type { PageData } from './$types';
+	import { Eye, EyeOff, Lock, Loader2, User, CalendarCheck, HeartHandshake, ShieldCheck, GraduationCap } from '@lucide/svelte';
 
+	let { data }: { data: PageData } = $props();
+
+	let tab = $state<'sibk' | 'moodle'>('sibk');
 	let showPass = $state(false);
 	let submitting = $state(false);
+	let submittingMoodle = $state(false);
+
+	$effect(() => {
+		if ($page.form?.errorTab === 'moodle') tab = 'moodle';
+	});
 </script>
 
 <main class="relative min-h-screen overflow-hidden bg-slate-50 flex items-center justify-center px-4 py-10">
@@ -73,61 +82,137 @@
 						</div>
 					{/if}
 
-					<form method="POST" onsubmit={() => (submitting = true)} class="mt-6 space-y-4">
-						<div>
-							<label for="username" class="mb-1.5 block text-xs font-medium text-slate-600">Username</label>
-							<div class="relative">
-								<User size={16} strokeWidth={2} class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+					<div class="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+						<button
+							type="button"
+							onclick={() => (tab = 'sibk')}
+							class="rounded-lg px-3 py-1.5 text-sm font-medium transition {tab === 'sibk' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}"
+						>
+							Akun SIBK
+						</button>
+						{#if data.moodleEnabled}
+							<button
+								type="button"
+								onclick={() => (tab = 'moodle')}
+								class="rounded-lg px-3 py-1.5 text-sm font-medium transition {tab === 'moodle' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}"
+							>
+								Akun Moodle
+							</button>
+						{/if}
+					</div>
+
+					{#if tab === 'sibk'}
+						<form method="POST" action="?/sibk" onsubmit={() => (submitting = true)} class="mt-5 space-y-4">
+							<div>
+								<label for="username" class="mb-1.5 block text-xs font-medium text-slate-600">Username</label>
+								<div class="relative">
+									<User size={16} strokeWidth={2} class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+									<input
+										id="username"
+										type="text"
+										name="username"
+										value={$page.form?.username ?? ''}
+										placeholder="contoh: admin"
+										autocomplete="username"
+										class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+									/>
+								</div>
+							</div>
+
+							<div>
+								<label for="password" class="mb-1.5 block text-xs font-medium text-slate-600">Password</label>
+								<div class="relative">
+									<Lock size={16} strokeWidth={2} class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+									<input
+										id="password"
+										type={showPass ? 'text' : 'password'}
+										name="password"
+										placeholder="password login"
+										autocomplete="current-password"
+										class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+									/>
+									<button
+										type="button"
+										aria-label={showPass ? 'Sembunyikan password' : 'Tampilkan password'}
+										onclick={() => (showPass = !showPass)}
+										class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:text-slate-600"
+									>
+										{#if showPass}
+											<EyeOff size={16} />
+										{:else}
+											<Eye size={16} />
+										{/if}
+									</button>
+								</div>
+							</div>
+
+							<button
+								type="submit"
+								disabled={submitting}
+								class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary-600/20 transition hover:bg-primary-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+							>
+								{#if submitting}
+									<Loader2 size={16} class="animate-spin" />
+								{/if}
+								{submitting ? 'Memproses...' : 'Masuk'}
+							</button>
+						</form>
+					{:else}
+						<form method="POST" action="?/moodle" onsubmit={() => (submittingMoodle = true)} class="mt-5 space-y-4">
+							<div class="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+								<GraduationCap size={14} />
+								Login dengan kredensial LMS Moodle sekolah.
+							</div>
+							<div>
+								<label for="moodle-username" class="mb-1.5 block text-xs font-medium text-slate-600">Username Moodle</label>
 								<input
-									id="username"
+									id="moodle-username"
 									type="text"
 									name="username"
-									value={$page.form?.username ?? ''}
-									placeholder="contoh: admin"
 									autocomplete="username"
-									class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+									placeholder="username Moodle Anda"
+									class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 								/>
 							</div>
-						</div>
-
-						<div>
-							<label for="password" class="mb-1.5 block text-xs font-medium text-slate-600">Password</label>
-							<div class="relative">
-								<Lock size={16} strokeWidth={2} class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-								<input
-									id="password"
-									type={showPass ? 'text' : 'password'}
-									name="password"
-									placeholder="password login"
-									autocomplete="current-password"
-									class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-								/>
-								<button
-									type="button"
-									aria-label={showPass ? 'Sembunyikan password' : 'Tampilkan password'}
-									onclick={() => (showPass = !showPass)}
-									class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:text-slate-600"
-								>
-									{#if showPass}
-										<EyeOff size={16} />
-									{:else}
-										<Eye size={16} />
-									{/if}
-								</button>
+							<div>
+								<label for="moodle-password" class="mb-1.5 block text-xs font-medium text-slate-600">Password Moodle</label>
+								<div class="relative">
+									<Lock size={16} strokeWidth={2} class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+									<input
+										id="moodle-password"
+										type={showPass ? 'text' : 'password'}
+										name="password"
+										autocomplete="current-password"
+										placeholder="password Moodle Anda"
+										class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-10 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+									/>
+									<button
+										type="button"
+										aria-label={showPass ? 'Sembunyikan password' : 'Tampilkan password'}
+										onclick={() => (showPass = !showPass)}
+										class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:text-slate-600"
+									>
+										{#if showPass}
+											<EyeOff size={16} />
+										{:else}
+											<Eye size={16} />
+										{/if}
+									</button>
+								</div>
 							</div>
-						</div>
 
-						<button
-							type="submit"
-							disabled={submitting}
-							class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary-600/20 transition hover:bg-primary-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
-						>
-							{#if submitting}
-								<Loader2 size={16} class="animate-spin" />
-							{/if}
-							{submitting ? 'Memproses...' : 'Masuk'}
-						</button>
-					</form>
+							<button
+								type="submit"
+								disabled={submittingMoodle}
+								class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+							>
+								{#if submittingMoodle}
+									<Loader2 size={16} class="animate-spin" />
+								{/if}
+								{submittingMoodle ? 'Memverifikasi ke Moodle...' : 'Masuk dengan Moodle'}
+							</button>
+						</form>
+					{/if}
 
 					<p class="mt-6 text-center text-sm text-slate-500">
 						Belum punya akun? Siswa dapat
