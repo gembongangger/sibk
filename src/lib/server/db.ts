@@ -578,6 +578,10 @@ export function getKelasNomorOptions(): string[] {
 	return parseStringList(getSetting('kelas_nomor_options')) ?? ['1', '2', '3', '4', '5'];
 }
 
+export function getJenisLayananOptions(): string[] {
+	return parseStringList(getSetting('jenis_layanan_options')) ?? ['Pribadi', 'Sosial', 'Belajar', 'Karier'];
+}
+
 export function listKelasConfig() {
 	return {
 		tingkat: getKelasTingkatOptions(),

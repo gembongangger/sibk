@@ -91,10 +91,9 @@
 					<label for="jenis" class="block mb-1 text-slate-600">Jenis Layanan</label>
 					<select id="jenis" name="jenis" bind:value={jenis} class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs">
 						<option value="">Pilih jenis layanan</option>
-						<option value="Pribadi">Pribadi</option>
-						<option value="Sosial">Sosial</option>
-						<option value="Belajar">Belajar</option>
-						<option value="Karier">Karier</option>
+						{#each data.jenisLayanan as j}
+							<option value={j}>{j}</option>
+						{/each}
 					</select>
 				</div>
 				<div>

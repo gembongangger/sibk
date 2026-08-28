@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import {
 	db,
 	checkGuruAvailability,
+	getJenisLayananOptions,
 	normalizeJadwal,
 	listAllRequests,
 	listGuruBK,
@@ -19,7 +20,8 @@ export const load: PageServerLoad = ({ locals }) => {
 	return {
 		isGuru,
 		requests: (isGuru ? listAllRequests(guruId) : listRequestsForSiswa(user.id)) as StudentRequestRow[],
-		guruList: listGuruBK()
+		guruList: listGuruBK(),
+		jenisLayanan: getJenisLayananOptions()
 	};
 };
 
@@ -39,6 +41,13 @@ export const actions: Actions = {
 		if (!jenis || !topik || !deskripsi) {
 			return fail(400, {
 				error: 'Semua bidang wajib diisi untuk pengajuan konseling.',
+				form: { jenis, topik, deskripsi }
+			});
+		}
+
+		if (!getJenisLayananOptions().includes(jenis)) {
+			return fail(400, {
+				error: 'Jenis layanan tidak tersedia. Muat ulang halaman lalu pilih jenis yang valid.',
 				form: { jenis, topik, deskripsi }
 			});
 		}

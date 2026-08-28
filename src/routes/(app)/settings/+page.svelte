@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
 	import Alert from '$lib/components/Alert.svelte';
-	import { Clock, BookOpen } from '@lucide/svelte';
+	import { Clock, BookOpen, HeartHandshake } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -10,12 +10,14 @@
 	let tingkatText = $state('');
 	let programText = $state('');
 	let nomorText = $state('');
+	let jenisLayananText = $state('');
 
 	$effect(() => {
 		duration = String(data.duration);
 		tingkatText = data.tingkatOptions.join('\n');
 		programText = data.programOptions.join('\n');
 		nomorText = data.nomorOptions.join('\n');
+		jenisLayananText = data.jenisLayanan.join('\n');
 	});
 </script>
 
@@ -146,6 +148,47 @@
 
 			<button type="submit" class="btn btn-primary">
 				Simpan Daftar Kelas
+			</button>
+		</form>
+	</div>
+
+	<div class="card mt-6">
+		<div class="flex items-center gap-2 mb-4">
+			<div class="h-9 w-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+				<HeartHandshake size={18} strokeWidth={2} />
+			</div>
+			<div>
+				<h2 class="text-sm font-semibold text-slate-900">Jenis Layanan BK</h2>
+				<p class="text-[11px] text-slate-400">
+					Opsi jenis layanan yang tersedia saat siswa mengajukan permohonan konseling. Satu opsi per baris.
+				</p>
+			</div>
+		</div>
+
+		<form method="POST" action="?/simpanJenisLayanan" class="space-y-3">
+			<div>
+				<label for="jenisLayanan" class="block mb-1 text-xs text-slate-600">Daftar Jenis Layanan</label>
+				<textarea
+					id="jenisLayanan"
+					name="jenisLayanan"
+					rows="6"
+					bind:value={jenisLayananText}
+					class="input font-mono text-xs"
+					placeholder={"Pribadi\nSosial\nBelajar\nKarier"}
+				></textarea>
+			</div>
+
+			<div class="text-xs text-slate-500 bg-slate-50 rounded-lg p-3">
+				<p class="font-medium text-slate-700 mb-1">Opsi aktif:</p>
+				<div class="flex flex-wrap gap-1.5">
+					{#each jenisLayananText.split('\n').map((s) => s.trim()).filter((s) => s.length > 0) as j}
+						<span class="inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-medium text-violet-700">{j}</span>
+					{/each}
+				</div>
+			</div>
+
+			<button type="submit" class="btn btn-primary">
+				Simpan Jenis Layanan
 			</button>
 		</form>
 	</div>

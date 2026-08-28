@@ -3,6 +3,7 @@ import {
 	getKelasTingkatOptions,
 	getKelasProgramOptions,
 	getKelasNomorOptions,
+	getJenisLayananOptions,
 	getSetting,
 	setSetting
 } from '$lib/server/db';
@@ -24,7 +25,8 @@ export const load: PageServerLoad = ({ locals }) => {
 		duration: Number(getSetting('session_duration_minutes') ?? '30'),
 		tingkatOptions: getKelasTingkatOptions(),
 		programOptions: getKelasProgramOptions(),
-		nomorOptions: getKelasNomorOptions()
+		nomorOptions: getKelasNomorOptions(),
+		jenisLayanan: getJenisLayananOptions()
 	};
 };
 
@@ -63,5 +65,21 @@ export const actions: Actions = {
 		setSetting('kelas_program_options', JSON.stringify(program));
 		setSetting('kelas_nomor_options', JSON.stringify(nomor));
 		return { success: 'Daftar opsi kelas berhasil disimpan.' };
+	},
+
+	simpanJenisLayanan: async ({ locals, request }) => {
+		const user = locals.user!;
+		if (user.role !== 'admin') {
+			return fail(403, { error: 'Tidak diizinkan.' });
+		}
+		const form = await request.formData();
+		const jenis = parseLines(String(form.get('jenisLayanan') ?? ''));
+
+		if (jenis.length === 0) {
+			return fail(400, { error: 'Daftar jenis layanan minimal satu item.' });
+		}
+
+		setSetting('jenis_layanan_options', JSON.stringify(jenis));
+		return { success: 'Daftar jenis layanan berhasil disimpan.' };
 	}
 };
