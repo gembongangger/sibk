@@ -5,6 +5,11 @@
 
 	let { data }: { data: PageData } = $props();
 	let submitting = $state(false);
+	let hydrated = $state(false);
+
+	$effect(() => {
+		hydrated = true;
+	});
 </script>
 
 <main class="relative min-h-screen overflow-hidden bg-slate-50 flex items-center justify-center px-4 py-10">
@@ -33,6 +38,7 @@
 				</div>
 			{/if}
 
+			{#if hydrated}
 			<form method="POST" onsubmit={() => (submitting = true)} class="space-y-3">
 				<div>
 					<label for="nama" class="mb-1.5 block text-xs font-medium text-slate-600">Nama Lengkap</label>
@@ -160,6 +166,15 @@
 					{submitting ? 'Memproses...' : 'Daftar'}
 				</button>
 			</form>
+			{:else}
+				<div
+					class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-sm text-slate-500"
+					role="status"
+				>
+					<Loader2 size={16} class="animate-spin" />
+					Menyiapkan formulir pendaftaran&hellip;
+				</div>
+			{/if}
 
 			<p class="mt-4 text-center text-sm text-slate-500">
 				Sudah punya akun?
