@@ -341,6 +341,44 @@ export function listGuruBK(): { id: number; nama: string }[] {
 		.all() as { id: number; nama: string }[];
 }
 
+export interface CreateUserInput {
+	nama: string;
+	username: string;
+	passwordHash: string;
+	role: Role;
+	nis?: string;
+	kelasTingkat?: string;
+	kelasProgram?: string;
+	kelasNomor?: string;
+	angkatan?: number;
+	email?: string;
+	telepon?: string;
+}
+
+export function createUser(input: CreateUserInput): number {
+	const kelas = buildKelasString(input.kelasTingkat ?? '', input.kelasProgram ?? '', input.kelasNomor ?? '');
+	const result = db()
+		.prepare(
+			`INSERT INTO users (nama, username, password, role, nis, kelas, kelas_tingkat, kelas_program, kelas_nomor, angkatan, email, telepon)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		)
+		.run(
+			input.nama,
+			input.username,
+			input.passwordHash,
+			input.role,
+			input.nis || null,
+			kelas,
+			input.kelasTingkat || null,
+			input.kelasProgram || null,
+			input.kelasNomor || null,
+			input.angkatan ?? null,
+			input.email || null,
+			input.telepon || null
+		);
+	return Number(result.lastInsertRowid);
+}
+
 export function normalizeJadwal(jadwal: string): string {
 	if (!jadwal) return jadwal;
 	if (jadwal.includes('T')) {
