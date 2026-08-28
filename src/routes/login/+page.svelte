@@ -41,7 +41,7 @@
 						{#each [
 							{ icon: CalendarCheck, text: 'Booking sesi konseling dengan guru BK secara online' },
 							{ icon: HeartHandshake, text: 'Layanan pribadi, sosial, belajar, dan karier' },
-							{ icon: ShieldCheck, text: 'Riwayat konseling tercatat aman &amp; rahasia' }
+							{ icon: ShieldCheck, text: 'Riwayat konseling tercatat aman & rahasia' }
 						] as f (f.text)}
 							<div class="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm backdrop-blur">
 								<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/15">
