@@ -1,49 +1,55 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
+	import { Loader2 } from '@lucide/svelte';
 
 	let { data }: { data: PageData } = $props();
+	let submitting = $state(false);
 </script>
 
-<main class="min-h-screen bg-gradient-to-br from-primary-900 via-primary-700 to-primary-500 flex items-center justify-center px-4 py-8">
-	<div class="max-w-md w-full">
-		<div class="bg-white/10 backdrop-blur rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
-			<div class="flex flex-col items-center gap-3 mb-6">
-				<img src="/logo.png" alt="Logo MAN 1 Jember" class="h-16 w-16 rounded-full bg-white/80 p-1" />
+<main class="relative min-h-screen overflow-hidden bg-slate-50 flex items-center justify-center px-4 py-10">
+	<div class="pointer-events-none absolute inset-0" aria-hidden="true">
+		<div class="absolute -top-28 -left-28 h-96 w-96 rounded-full bg-primary-300/30 blur-3xl animate-blob"></div>
+		<div class="absolute top-1/3 -right-32 h-96 w-96 rounded-full bg-emerald-200/40 blur-3xl animate-blob-slow"></div>
+		<div class="absolute -bottom-32 left-1/4 h-80 w-80 rounded-full bg-primary-100/50 blur-3xl animate-blob"></div>
+	</div>
+
+	<div class="relative max-w-md w-full animate-fade-in-up">
+		<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl shadow-primary-900/10 sm:p-8">
+			<div class="mb-6 flex flex-col items-center gap-3">
+				<div class="flex h-16 w-16 items-center justify-center rounded-full ring-2 ring-primary-100">
+					<img src="/logo.png" alt="Logo MAN 1 Jember" class="h-14 w-14 rounded-full" />
+				</div>
 				<div class="text-center">
-					<div class="text-sm text-primary-100 tracking-wide">MAN 1 Jember</div>
-					<h1 class="text-xl font-semibold text-white tracking-tight">Pendaftaran Siswa</h1>
-					<p class="text-xs text-primary-100 mt-1">Buat akun untuk mengakses layanan BK.</p>
+					<div class="text-xs font-semibold uppercase tracking-wide text-primary-600">MAN 1 Jember</div>
+					<h1 class="text-lg font-bold text-slate-900">Pendaftaran Siswa</h1>
+					<p class="text-xs text-slate-500 mt-1">Buat akun untuk mengakses layanan BK.</p>
 				</div>
 			</div>
 
 			{#if $page.form?.error}
-				<div class="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-xs text-red-50">
+				<div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs text-red-700">
 					{$page.form.error}
 				</div>
 			{/if}
 
-			<form method="POST" class="space-y-3">
+			<form method="POST" onsubmit={() => (submitting = true)} class="space-y-3">
 				<div>
-					<label for="nama" class="block text-xs font-medium text-primary-50 mb-1.5">Nama Lengkap</label>
+					<label for="nama" class="mb-1.5 block text-xs font-medium text-slate-600">Nama Lengkap</label>
 					<input
 						id="nama"
 						type="text"
 						name="nama"
 						value={$page.form?.form?.nama ?? ''}
 						placeholder="contoh: Ahmad Fauzi"
-						class="w-full rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-primary-100 focus:border-white focus:outline-none focus:ring-1 focus:ring-white"
+						class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
 					/>
 				</div>
 
 				<div class="grid grid-cols-3 gap-2">
 					<div>
-						<label for="kelas_tingkat" class="block text-xs font-medium text-primary-50 mb-1.5">Tingkat</label>
-						<select
-							id="kelas_tingkat"
-							name="kelas_tingkat"
-							class="w-full rounded-xl border border-white/30 bg-white/10 px-2 py-2 text-sm text-white focus:border-white focus:outline-none"
-						>
+						<label for="kelas_tingkat" class="mb-1.5 block text-xs font-medium text-slate-600">Tingkat</label>
+						<select id="kelas_tingkat" name="kelas_tingkat" class="w-full rounded-xl border border-slate-200 bg-white px-2 py-2 text-sm text-slate-800 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
 							<option value="">-</option>
 							{#each data.kelasConfig.tingkat as k}
 								<option value={k} selected={k === ($page.form?.form?.kelasTingkat ?? '')}>{k}</option>
@@ -51,12 +57,8 @@
 						</select>
 					</div>
 					<div>
-						<label for="kelas_program" class="block text-xs font-medium text-primary-50 mb-1.5">Program</label>
-						<select
-							id="kelas_program"
-							name="kelas_program"
-							class="w-full rounded-xl border border-white/30 bg-white/10 px-2 py-2 text-sm text-white focus:border-white focus:outline-none"
-						>
+						<label for="kelas_program" class="mb-1.5 block text-xs font-medium text-slate-600">Program</label>
+						<select id="kelas_program" name="kelas_program" class="w-full rounded-xl border border-slate-200 bg-white px-2 py-2 text-sm text-slate-800 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
 							<option value="">-</option>
 							{#each data.kelasConfig.program as k}
 								<option value={k} selected={k === ($page.form?.form?.kelasProgram ?? '')}>{k}</option>
@@ -64,12 +66,8 @@
 						</select>
 					</div>
 					<div>
-						<label for="kelas_nomor" class="block text-xs font-medium text-primary-50 mb-1.5">Nomor</label>
-						<select
-							id="kelas_nomor"
-							name="kelas_nomor"
-							class="w-full rounded-xl border border-white/30 bg-white/10 px-2 py-2 text-sm text-white focus:border-white focus:outline-none"
-						>
+						<label for="kelas_nomor" class="mb-1.5 block text-xs font-medium text-slate-600">Nomor</label>
+						<select id="kelas_nomor" name="kelas_nomor" class="w-full rounded-xl border border-slate-200 bg-white px-2 py-2 text-sm text-slate-800 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
 							<option value="">-</option>
 							{#each data.kelasConfig.nomor as k}
 								<option value={k} selected={k === ($page.form?.form?.kelasNomor ?? '')}>{k}</option>
@@ -80,23 +78,19 @@
 
 				<div class="grid grid-cols-2 gap-2">
 					<div>
-						<label for="nis" class="block text-xs font-medium text-primary-50 mb-1.5">NIS</label>
+						<label for="nis" class="mb-1.5 block text-xs font-medium text-slate-600">NIS</label>
 						<input
 							id="nis"
 							type="text"
 							name="nis"
 							value={$page.form?.form?.nis ?? ''}
 							placeholder="contoh: 12345"
-							class="w-full rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-primary-100 focus:border-white focus:outline-none"
+							class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
 						/>
 					</div>
 					<div>
-						<label for="angkatan" class="block text-xs font-medium text-primary-50 mb-1.5">Angkatan</label>
-						<select
-							id="angkatan"
-							name="angkatan"
-							class="w-full rounded-xl border border-white/30 bg-white/10 px-2 py-2 text-sm text-white focus:border-white focus:outline-none"
-						>
+						<label for="angkatan" class="mb-1.5 block text-xs font-medium text-slate-600">Angkatan</label>
+						<select id="angkatan" name="angkatan" class="w-full rounded-xl border border-slate-200 bg-white px-2 py-2 text-sm text-slate-800 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
 							<option value="">-</option>
 							{#each data.angkatanOptions as a}
 								<option value={a} selected={a === Number($page.form?.form?.angkatan)}>{a}</option>
@@ -106,7 +100,7 @@
 				</div>
 
 				<div>
-					<label for="username" class="block text-xs font-medium text-primary-50 mb-1.5">Username</label>
+					<label for="username" class="mb-1.5 block text-xs font-medium text-slate-600">Username</label>
 					<input
 						id="username"
 						type="text"
@@ -114,60 +108,64 @@
 						value={$page.form?.form?.username ?? ''}
 						placeholder="contoh: ahmad_fauzi"
 						autocomplete="username"
-						class="w-full rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-primary-100 focus:border-white focus:outline-none"
+						class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
 					/>
 				</div>
 
 				<div class="grid grid-cols-2 gap-2">
 					<div>
-						<label for="email" class="block text-xs font-medium text-primary-50 mb-1.5">Email</label>
+						<label for="email" class="mb-1.5 block text-xs font-medium text-slate-600">Email</label>
 						<input
 							id="email"
 							type="email"
 							name="email"
 							value={$page.form?.form?.email ?? ''}
 							placeholder="opsional"
-							class="w-full rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-primary-100 focus:border-white focus:outline-none"
+							class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
 						/>
 					</div>
 					<div>
-						<label for="telepon" class="block text-xs font-medium text-primary-50 mb-1.5">Telepon</label>
+						<label for="telepon" class="mb-1.5 block text-xs font-medium text-slate-600">Telepon</label>
 						<input
 							id="telepon"
 							type="text"
 							name="telepon"
 							value={$page.form?.form?.telepon ?? ''}
 							placeholder="opsional"
-							class="w-full rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-primary-100 focus:border-white focus:outline-none"
+							class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
 						/>
 					</div>
 				</div>
 
 				<div>
-					<label for="password" class="block text-xs font-medium text-primary-50 mb-1.5">Password</label>
+					<label for="password" class="mb-1.5 block text-xs font-medium text-slate-600">Password</label>
 					<input
 						id="password"
 						type="password"
 						name="password"
 						placeholder="minimal 6 karakter"
 						autocomplete="new-password"
-						class="w-full rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-primary-100 focus:border-white focus:outline-none"
+						class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
 					/>
 				</div>
 
 				<button
 					type="submit"
-					class="w-full mt-1 inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-primary-700 shadow-lg shadow-black/10 hover:bg-primary-50 active:scale-[0.99] transition"
+					disabled={submitting}
+					class="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary-600/20 transition hover:bg-primary-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
 				>
-					Daftar
+					{#if submitting}
+						<Loader2 size={16} class="animate-spin" />
+					{/if}
+					{submitting ? 'Memproses...' : 'Daftar'}
 				</button>
 			</form>
 
-			<p class="mt-4 text-sm text-primary-100 text-center leading-snug">
+			<p class="mt-4 text-center text-sm text-slate-500">
 				Sudah punya akun?
-				<a href="/login" class="font-semibold text-white underline underline-offset-2 hover:text-primary-50">Masuk</a>
+				<a href="/login" class="font-semibold text-primary-700 underline-offset-2 hover:underline">Masuk</a>
 			</p>
 		</div>
-		<p class="mt-4 text-xs text-primary-100 text-center">&copy; {new Date().getFullYear()} BK MAN 1 Jember</p>
+		<p class="mt-4 text-center text-xs text-slate-400">&copy; {new Date().getFullYear()} BK MAN 1 Jember</p>
 	</div>
 </main>
