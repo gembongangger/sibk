@@ -102,7 +102,7 @@ export const actions: Actions = {
 			url = new URL(baseUrl || 'https://invalid');
 			if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error();
 		} catch {
-			return fail(400, { error: 'URL Moodle tidak valid. Contoh: https://lms.man1jember.sch.id' });
+			return fail(400, { error: 'URL Moodle tidak valid. Contoh: https://lms24.man1jember.sch.id' });
 		}
 		if (!shortname) {
 			return fail(400, { error: 'Service shortname wajib diisi.' });

@@ -232,7 +232,7 @@
 					type="text"
 					bind:value={moodleBaseUrl}
 					class="input"
-					placeholder="https://lms.man1jember.sch.id"
+					placeholder="https://lms24.man1jember.sch.id"
 				/>
 				<p class="mt-1 text-[11px] text-slate-400">Cukup alamat utama, tanpa /login/index.php.</p>
 			</div>

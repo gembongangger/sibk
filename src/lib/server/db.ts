@@ -389,7 +389,7 @@ export interface MoodleConfig {
 export function getMoodleConfig(): MoodleConfig {
 	return {
 		enabled: getSetting('moodle_enabled') === '1',
-		baseUrl: (getSetting('moodle_base_url') ?? 'https://lms.man1jember.sch.id').trim().replace(/\/+$/, ''),
+		baseUrl: (getSetting('moodle_base_url') ?? 'https://lms24.man1jember.sch.id').trim().replace(/\/+$/, ''),
 		serviceShortname: (getSetting('moodle_service_shortname') ?? 'sibk_sso').trim(),
 		skipTlsVerify: getSetting('moodle_tls_skip') === '1'
 	};
