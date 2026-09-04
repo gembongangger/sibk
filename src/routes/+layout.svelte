@@ -6,3 +6,7 @@
 </script>
 
 {@render children()}
+
+<svelte:head>
+	<title>SIBK MAN 1 Jember</title>
+</svelte:head>
