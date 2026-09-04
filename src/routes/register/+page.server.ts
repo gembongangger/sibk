@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { createUser, listKelasConfig, parseAngkatan, getAngkatanAktif } from '$lib/server/db';
+import { createUser, listKelasConfig, parseAngkatan, listAngkatanRegistrasi } from '$lib/server/db';
 import { hashPassword, createSession, getSessionCookie } from '$lib/server/auth';
 import { findUserByUsername } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
@@ -8,7 +8,7 @@ export const load: PageServerLoad = ({ locals }) => {
 	if (locals.user) redirect(302, '/');
 	return {
 		kelasConfig: listKelasConfig(),
-		angkatanOptions: getAngkatanAktif().years
+		angkatanOptions: listAngkatanRegistrasi()
 	};
 };
 

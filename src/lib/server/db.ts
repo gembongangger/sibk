@@ -816,6 +816,18 @@ export function listAngkatanOptions(): number[] {
 	);
 }
 
+/** Daftar tahun angkatan untuk form pendaftaran: gabungan tahun yang diatur
+ *  admin + rentang otomatis (tahun berjalan - 6 s/d tahun berjalan), agar
+ *  pilihan tidak kosong/terbatas meski pengaturan belum diisi. */
+export function listAngkatanRegistrasi(): number[] {
+	const now = new Date().getFullYear();
+	const auto = Array.from({ length: 7 }, (_, i) => now - 6 + i);
+	const merged = new Set([...auto, ...getAngkatanAktif().years, ...listAngkatanOptions()]);
+	return [...merged]
+		.filter((n) => Number.isInteger(n) && n >= 1990 && n <= 2100)
+		.sort((a, b) => a - b);
+}
+
 export function parseAngkatan(raw: string): number | null {
 	if (!raw) return null;
 	const n = Number(raw);
